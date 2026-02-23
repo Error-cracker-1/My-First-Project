@@ -17,5 +17,5 @@ $greetingFunction = {
     return "Hello, $name!"
 }
 $result = & $greetingFunction -name "Kumar"
-Write-Host $result  # Output: Hello, Kumar!
+Write-Host $result  
 
