@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>you are an idiot!</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: "Comic Sans MS", cursive, sans-serif;
+        cursor: wait;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        text-align: center;
+        background-color: red;
+        color: black;
+        font-size: 3rem;
+        font-weight: bold;
+        animation: flash 0.1s infinite;
+      }
+
+      @keyframes flash {
+        0% {
+          background-color: red;
+          color: black;
+        }
+
+        50% {
+          background-color: aquamarine;
+          color: black;
+        }
+
+        100% {
+          background-color: red;
+          color: black;
+        }
+      }
+
+      .controls {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.08);
+        padding: 6px 8px;
+        border-radius: 8px;
+        backdrop-filter: blur(4px);
+      }
+
+      #volumeSlider {
+        width: 180px;
+      }
+    </style>
+    <script>
+      var isBouncing = true;
+      function bounce() {
+        if (!isBouncing) return;
+        var container = document.querySelector(".container");
+        var x = Math.random() * 50 - 25;
+        var y = Math.random() * 50 - 25;
+        container.style.transform = "translate(" + x + "px, " + y + "px)";
+        setTimeout(bounce, 5);
+      }
+      window.onload = function () {
+        bounce();
+        var audio = document.getElementById("annoyingSound");
+        var slider = document.getElementById("volumeSlider");
+        var muteButton = document.getElementById("muteButton");
+
+        document
+          .getElementById("stopButton")
+          .addEventListener("click", function () {
+            isBouncing = !isBouncing;
+            if (isBouncing) {
+              bounce();
+              this.innerText = "Stop Bouncing";
+            } else {
+              document.querySelector(".container").style.transform = "none";
+              this.innerText = "Start Bouncing";
+            }
+          });
+
+        // Pointer-based behaviors removed — buttons remain static and clickable
+
+        slider.addEventListener("input", function () {
+          var v = parseFloat(this.value);
+          audio.volume = v;
+          if (audio.muted && v > 0) {
+            audio.muted = false;
+            if (muteButton) muteButton.innerText = "Mute";
+          }
+        });
+
+        // Initialize slider to reflect actual audio volume
+        slider.value = audio.volume;
+
+        // Ensure the mute button text matches current state
+        if (muteButton) muteButton.innerText = audio.muted ? "Unmute" : "Mute";
+
+        // Keep the slider and mute button in sync if volume or muted change programmatically
+        audio.addEventListener("volumechange", function () {
+          slider.value = audio.volume;
+          if (muteButton) muteButton.innerText = audio.muted ? "Unmute" : "Mute";
+        });
+
+        if (muteButton) {
+          muteButton.addEventListener("click", function () {
+            audio.muted = !audio.muted;
+            this.innerText = audio.muted ? "Unmute" : "Mute";
+          });
+        }
+
+        // Keyboard shortcut: press 'M' to toggle mute (ignore when typing)
+        document.addEventListener("keydown", function (e) {
+          try {
+            if (!e.key) return;
+            if (e.key.toLowerCase() !== "m") return;
+            var active = document.activeElement;
+            var tag = active && active.tagName;
+            if (
+              active &&
+              (tag === "INPUT" || tag === "TEXTAREA" || active.isContentEditable)
+            )
+              return;
+            audio.muted = !audio.muted;
+            if (muteButton) muteButton.innerText = audio.muted ? "Unmute" : "Mute";
+          } catch (err) {
+            console.error(err);
+          }
+        });
+
+        // Spam the debug console
+        setInterval(function () {
+          console.log(
+            "%c YOU ARE AN IDIOT ",
+            "background: red; color: yellow; font-size: x-large",
+          );
+          console.error("CRITICAL ERROR: USER IDIOT DETECTED");
+          console.warn("System instability due to idiot user");
+        }, 200);
+
+        audio
+          .play()
+          .then(() => console.log("Audio started automatically"))
+          .catch(function (error) {
+            console.warn("Autoplay blocked. Waiting for interaction.", error);
+            function play() {
+              audio
+                .play()
+                .then(() => {
+                  console.log("Audio started via interaction.");
+                  ["click", "mousemove", "keydown", "touchstart"].forEach((e) =>
+                    document.removeEventListener(e, play),
+                  );
+                })
+                .catch((e) => console.error("Play failed:", e));
+            }
+            ["click", "mousemove", "keydown", "touchstart"].forEach((e) =>
+              document.addEventListener(e, play),
+            );
+          });
+      };
+    </script>
+  </head>
+
+  <body>
+    <audio
+      id="annoyingSound"
+      src="You are an idiot! - QuickSounds.com.mp3"
+      loop
+    ></audio>
+
+    <div class="controls">
+      <input
+        type="range"
+        id="volumeSlider"
+        min="0"
+        max="1"
+        step="0.01"
+        value="1"
+      />
+      <button id="muteButton">Mute</button>
+      <button id="stopButton">Stop Bouncing</button>
+    </div>
+    <div class="container">
+      <h1><b>YOu Are an Idiot!!!!!!!!!!!!</b></h1>
+      <br />
+      <h2><b>😈😈😈😈😈😈😈😈</b></h2>
+      <h2><b>This is a Irritating Website</b><br /></h2>
+    </div>
+  </body>
+</html>
