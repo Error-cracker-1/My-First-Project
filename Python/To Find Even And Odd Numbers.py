@@ -1,0 +1,8 @@
+print("Welcome to the Even and Odd Number Finder!")
+num = float(input("Enter a number: "))
+
+if num % 2 == 0:
+    print(f"{num} is even")
+else:
+    print(f"{num} is odd")
+input("Press Enter to Exit")

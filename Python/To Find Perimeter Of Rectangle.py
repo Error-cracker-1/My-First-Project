@@ -1,0 +1,6 @@
+print("Welcome to the Rectangle Perimeter Calculator!")
+length = float(input("Enter length: "))
+width = float(input("Enter width/Breadth: "))
+perimeter = 2 * (length + width)
+print("The perimeter of the rectangle is:", perimeter)
+input ("Press Enter to Exit")
