@@ -1,0 +1,967 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title> Pong </title>
+    <style>
+      :root {
+        --bg: #071428;
+        --accent: #10b981;
+        --muted: #94a3b8;
+        --text: #e6eef8;
+        --panel: #0a1220;
+        --glass: rgba(255, 255, 255, 0.03);
+        --input-bg: rgba(255, 255, 255, 0.02);
+        --input-border: rgba(255, 255, 255, 0.06);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background:
+          radial-gradient(
+            ellipse at 10% 10%,
+            rgba(16, 185, 129, 0.06),
+            transparent 10%
+          ),
+          linear-gradient(180deg, #051025 0%, #071427 100%);
+        color: var(--text);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          "Helvetica Neue",
+          Arial;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      #container {
+        max-width: 980px;
+        margin: 28px auto;
+        text-align: center;
+        padding: 18px;
+      }
+      h1 {
+        margin: 8px 0;
+        color: var(--accent);
+        font-weight: 600;
+      }
+      #scoreboard {
+        font-size: 36px;
+        margin: 6px 0 12px;
+        letter-spacing: 6px;
+        color: var(--text);
+        transition: transform 0.18s ease;
+      }
+      #gameWrap {
+        position: relative;
+        display: inline-block;
+      }
+      #gameCanvas {
+        display: block;
+        margin: 0 auto;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.06),
+          rgba(0, 0, 0, 0.08)
+        );
+        border: 3px solid rgba(255, 255, 255, 0.06);
+        box-shadow:
+          0 12px 60px rgba(2, 6, 23, 0.7),
+          inset 0 1px 0 rgba(255, 255, 255, 0.02);
+        border-radius: 10px;
+        cursor: crosshair;
+        touch-action: none;
+      }
+      #overlay {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+      }
+      #overlay.visible {
+        display: flex;
+        pointer-events: auto;
+      }
+      #overlay .menu {
+        width: 88%;
+        max-width: 520px;
+        padding: 18px;
+        border-radius: 12px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.02),
+          rgba(0, 0, 0, 0.12)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(6px);
+        box-shadow: 0 10px 40px rgba(2, 6, 23, 0.6);
+        text-align: left;
+        color: var(--text);
+      }
+      .menu h2 {
+        margin: 4px 0 10px;
+        color: var(--accent);
+      }
+      .row {
+        margin: 10px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .row label {
+        min-width: 120px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .choices label {
+        margin-right: 8px;
+        color: var(--text);
+      }
+      .desc {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .inline {
+        color: var(--text);
+      }
+      .actions {
+        justify-content: flex-end;
+      }
+      button {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .small {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 8px;
+        text-align: right;
+      }
+      .leaderboard {
+        color: var(--muted);
+        margin: 6px 0 0;
+        padding-left: 18px;
+        max-height: 120px;
+        overflow: auto;
+      }
+      .leaderboard li {
+        margin: 4px 0;
+        font-size: 13px;
+      }
+      #controls {
+        margin-top: 12px;
+        color: var(--muted);
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      footer {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .scorePulse {
+        transform: scale(1.12);
+        transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      @media (max-width: 520px) {
+        #gameCanvas {
+          width: 96vw;
+          height: auto;
+        }
+        .menu {
+          width: 94%;
+        }
+      }
+
+      .menu input[type="number"],
+      .menu input[type="text"],
+      .menu select,
+      .menu input[type="radio"],
+      .menu input[type="checkbox"] {
+        color: var(--text) !important;
+      }
+      .menu input[type="number"] {
+        background: var(--input-bg);
+        border: 1px solid var(--input-border);
+        padding: 6px 8px;
+        border-radius: 6px;
+        color: var(--text);
+        width: 84px;
+        appearance: textfield;
+        -webkit-appearance: textfield;
+      }
+      .menu input[type="number"]::-webkit-outer-spin-button,
+      .menu input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .menu input[type="radio"],
+      .menu input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--accent);
+        vertical-align: middle;
+        margin-right: 6px;
+      }
+      .menu .choices label,
+      .menu .inline {
+        color: var(--text);
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <h1>Welcome to Pong Game</h1>
+
+      <div id="scoreboard">
+        <span id="leftScore">0</span>
+        <span class="sep">—</span>
+        <span id="rightScore">0</span>
+      </div>
+
+      <div id="gameWrap">
+        <canvas
+          id="gameCanvas"
+          width="800"
+          height="500"
+          aria-label="Welcome to Pong Game"
+        ></canvas>
+
+        <div id="overlay" class="visible" role="dialog" aria-modal="true">
+          <div class="menu">
+            <h2 id="menuTitle">Welcome to Pong</h2>
+
+            <div class="row">
+              <label>Difficulty:</label>
+              <div class="choices">
+                <label
+                  ><input type="radio" name="difficulty" value="easy" />
+                  Easy</label
+                >
+                <label
+                  ><input
+                    type="radio"
+                    name="difficulty"
+                    value="normal"
+                    checked
+                  />
+                  Normal</label
+                >
+                <label
+                  ><input type="radio" name="difficulty" value="hard" />
+                  Hard</label
+                >
+              </div>
+            </div>
+
+            <div class="row">
+              <label>Winning score:</label>
+              <input id="winInput" type="number" min="1" max="50" value="10" />
+            </div>
+
+            <div class="row">
+              <label>Controls:</label>
+              <div class="desc">
+                Mouse (move over canvas), Touch (drag/tap) or Keyboard: W/S and
+                Arrow Up/Down
+              </div>
+            </div>
+
+            <div class="row">
+              <label>Sound:</label>
+              <label class="inline"
+                ><input id="menuSoundToggle" type="checkbox" /> Enable
+                sound</label
+              >
+            </div>
+
+            <div class="row">
+              <label>High Score:</label>
+              <div id="highScore">0</div>
+            </div>
+
+            <div class="row">
+              <label>Leaderboard:</label>
+              <ol id="leaderboard" class="leaderboard"></ol>
+            </div>
+
+            <div class="row actions">
+              <button id="startBtn">Start Game</button>
+              <button id="resetLeader">Reset Leaderboard</button>
+            </div>
+
+            <p class="small">
+              Use the pause button or press Space to pause. Click canvas to
+              (re)start as well.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div id="controls">
+        <button id="pauseBtn">Pause</button>
+        <label><input id="soundToggle" type="checkbox" /> Sound</label>
+      </div>
+
+      <footer>
+        <small>Computer controls the right paddle. Enjoy!</small>
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const overlay = document.getElementById("overlay");
+        const startBtn = document.getElementById("startBtn");
+        const resetLeader = document.getElementById("resetLeader");
+        const menuSoundToggle = document.getElementById("menuSoundToggle");
+        const soundToggle = document.getElementById("soundToggle");
+        const pauseBtn = document.getElementById("pauseBtn");
+        const winInput = document.getElementById("winInput");
+        const highScoreEl = document.getElementById("highScore");
+        const leaderboardEl = document.getElementById("leaderboard");
+
+        const width = canvas.width;
+        const height = canvas.height;
+
+        const PREF_SOUND = "pong_sound_v1";
+        const PREF_DIFF = "pong_lastdiff_v1";
+        const PREF_LEAD = "pong_leaderboard_v1";
+        const PREF_WIN = "pong_winscore_v1";
+        const TOP_N = 5;
+
+        // NOTE: increased difficulty values here
+        const difficulties = {
+          easy: { aiSpeed: 3.0, reaction: 0.18, error: 0.18 }, // stronger easy
+          normal: { aiSpeed: 4.5, reaction: 0.26, error: 0.08 }, // stronger normal
+          hard: { aiSpeed: 6.5, reaction: 0.38, error: 0.02 }, // much stronger hard
+        };
+
+        let leftScore = 0,
+          rightScore = 0;
+        let running = false,
+          paused = false;
+        let audioCtx = null;
+        let selectedDifficulty = localStorage.getItem(PREF_DIFF) || "normal";
+        let winningScore = parseInt(localStorage.getItem(PREF_WIN) || "10", 10);
+
+        const paddleWidth = 12,
+          paddleHeight = 90;
+        const leftPaddle = {
+          x: 16,
+          y: (height - paddleHeight) / 2,
+          width: paddleWidth,
+          height: paddleHeight,
+        };
+        const rightPaddle = {
+          x: width - paddleWidth - 16,
+          y: (height - paddleHeight) / 2,
+          width: paddleWidth,
+          height: paddleHeight,
+        };
+        const ball = {
+          x: width / 2,
+          y: height / 2,
+          vx: 0,
+          vy: 0,
+          r: 8,
+          speed: 5,
+        };
+
+        let keys = {
+          ArrowUp: false,
+          ArrowDown: false,
+          KeyW: false,
+          KeyS: false,
+        };
+        let mouseActive = false,
+          mouseY = 0,
+          touchActive = false;
+        const particles = [];
+        const MAX_PARTICLES = 120;
+        const trails = [];
+
+        document.querySelectorAll('input[name="difficulty"]').forEach((r) => {
+          if (r.value === selectedDifficulty) r.checked = true;
+          r.addEventListener("change", (e) => {
+            selectedDifficulty = e.target.value;
+            localStorage.setItem(PREF_DIFF, selectedDifficulty);
+          });
+        });
+
+        winInput.value = winningScore;
+        winInput.addEventListener("change", () => {
+          let v = parseInt(winInput.value, 10);
+          if (isNaN(v) || v < 1) v = 1;
+          if (v > 50) v = 50;
+          winningScore = v;
+          localStorage.setItem(PREF_WIN, String(winningScore));
+        });
+
+        const storedSound = localStorage.getItem(PREF_SOUND);
+        const initialSound = storedSound === null ? true : storedSound === "1";
+        menuSoundToggle.checked = initialSound;
+        soundToggle.checked = initialSound;
+        menuSoundToggle.addEventListener("change", () => {
+          const on = menuSoundToggle.checked;
+          soundToggle.checked = on;
+          localStorage.setItem(PREF_SOUND, on ? "1" : "0");
+        });
+        soundToggle.addEventListener("change", () => {
+          const on = soundToggle.checked;
+          menuSoundToggle.checked = on;
+          localStorage.setItem(PREF_SOUND, on ? "1" : "0");
+        });
+
+        function getLeaderboard() {
+          try {
+            const raw = localStorage.getItem(PREF_LEAD);
+            if (!raw) return [];
+            const arr = JSON.parse(raw);
+            if (!Array.isArray(arr)) return [];
+            return arr;
+          } catch (e) {
+            return [];
+          }
+        }
+        function saveLeaderboard(arr) {
+          localStorage.setItem(PREF_LEAD, JSON.stringify(arr.slice(0, TOP_N)));
+        }
+        function addLeaderboardEntry(score, difficulty) {
+          const arr = getLeaderboard();
+          arr.push({
+            score: score,
+            difficulty: difficulty,
+            date: new Date().toISOString(),
+          });
+          arr.sort(
+            (a, b) => b.score - a.score || new Date(b.date) - new Date(a.date),
+          );
+          saveLeaderboard(arr);
+          updateLeaderboardDisplay();
+        }
+        function resetLeaderboard() {
+          localStorage.removeItem(PREF_LEAD);
+          updateLeaderboardDisplay();
+        }
+        function updateLeaderboardDisplay() {
+          const arr = getLeaderboard();
+          leaderboardEl.innerHTML = "";
+          if (arr.length === 0) {
+            const li = document.createElement("li");
+            li.textContent = "No entries yet — be the first!";
+            leaderboardEl.appendChild(li);
+          } else {
+            arr.slice(0, TOP_N).forEach((e) => {
+              const d = new Date(e.date);
+              const s = `${e.score} — ${e.difficulty} — ${d.toLocaleString()}`;
+              const li = document.createElement("li");
+              li.textContent = s;
+              leaderboardEl.appendChild(li);
+            });
+          }
+          highScoreEl.textContent = arr.length ? arr[0].score : "0";
+        }
+        resetLeader.addEventListener("click", () => {
+          if (confirm("Reset leaderboard?")) resetLeaderboard();
+        });
+
+        function ensureAudio() {
+          if (!audioCtx) {
+            try {
+              audioCtx = new (
+                window.AudioContext || window.webkitAudioContext
+              )();
+            } catch (e) {
+              audioCtx = null;
+            }
+          }
+        }
+        function playBeep(freq = 440, duration = 0.05, gain = 0.03) {
+          if (!soundToggle.checked) return;
+          ensureAudio();
+          if (!audioCtx) return;
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.type = "sine";
+          o.frequency.value = freq;
+          g.gain.value = gain;
+          o.connect(g);
+          g.connect(audioCtx.destination);
+          o.start();
+          setTimeout(() => o.stop(), duration * 1000);
+        }
+
+        function clamp(v, a, b) {
+          return Math.max(a, Math.min(b, v));
+        }
+        function resetBall(toRight = true) {
+          ball.x = width / 2;
+          ball.y = height / 2;
+          ball.speed = 5;
+          trails.length = 0;
+          const angle = (Math.random() * Math.PI) / 4 - Math.PI / 8;
+          const dir = toRight ? 1 : -1;
+          ball.vx = Math.cos(angle) * ball.speed * dir;
+          ball.vy = Math.sin(angle) * ball.speed;
+        }
+        function updateScores() {
+          document.getElementById("leftScore").textContent = leftScore;
+          document.getElementById("rightScore").textContent = rightScore;
+          const sb = document.getElementById("scoreboard");
+          sb.classList.remove("scorePulse");
+          void sb.offsetWidth;
+          sb.classList.add("scorePulse");
+          setTimeout(() => sb.classList.remove("scorePulse"), 300);
+        }
+
+        function collidesPaddle(b, p) {
+          return (
+            b.x - b.r < p.x + p.width &&
+            b.x + b.r > p.x &&
+            b.y - b.r < p.y + p.height &&
+            b.y + b.r > p.y
+          );
+        }
+
+        function predictBallY() {
+          let simX = ball.x,
+            simY = ball.y,
+            vx = ball.vx,
+            vy = ball.vy;
+          const targetX = rightPaddle.x - ball.r;
+          for (let i = 0; i < 2000; i++) {
+            simX += vx;
+            simY += vy;
+            if (simY - ball.r <= 0) {
+              simY = ball.r;
+              vy = -vy;
+            }
+            if (simY + ball.r >= height) {
+              simY = height - ball.r;
+              vy = -vy;
+            }
+            if ((vx > 0 && simX >= targetX) || (vx < 0 && simX <= targetX))
+              return simY;
+          }
+          return height / 2;
+        }
+
+        function spawnParticles(x, y, color = "#10b981", count = 10) {
+          for (let i = 0; i < count; i++) {
+            if (particles.length > MAX_PARTICLES) particles.shift();
+            particles.push({
+              x,
+              y,
+              vx: (Math.random() * 2 - 1) * 2,
+              vy: (Math.random() * 2 - 1) * 2,
+              life: 40 + Math.random() * 30,
+              color,
+              size: 1 + Math.random() * 2,
+            });
+          }
+        }
+
+        function update() {
+          if (!running || paused) return;
+
+          if (touchActive) {
+          } else if (mouseActive) {
+            leftPaddle.y = clamp(
+              mouseY - leftPaddle.height / 2,
+              0,
+              height - leftPaddle.height,
+            );
+          } else {
+            let dy = 0;
+            if (keys.ArrowUp || keys.KeyW) dy -= 6;
+            if (keys.ArrowDown || keys.KeyS) dy += 6;
+            leftPaddle.y = clamp(
+              leftPaddle.y + dy,
+              0,
+              height - leftPaddle.height,
+            );
+          }
+
+          const diff = difficulties[selectedDifficulty] || difficulties.normal;
+          let targetY;
+          if (Math.random() < diff.reaction || Math.abs(ball.vx) < 0.001) {
+            const predicted = predictBallY();
+            const errorRange = diff.error * height;
+            const error = (Math.random() * 2 - 1) * errorRange;
+            targetY = predicted + error - rightPaddle.height / 2;
+          } else {
+            targetY = ball.y - rightPaddle.height / 2;
+          }
+          if (rightPaddle.y < targetY - 2) rightPaddle.y += diff.aiSpeed;
+          else if (rightPaddle.y > targetY + 2) rightPaddle.y -= diff.aiSpeed;
+          rightPaddle.y = clamp(rightPaddle.y, 0, height - rightPaddle.height);
+
+          trails.push({ x: ball.x, y: ball.y, a: 0.7 });
+          if (trails.length > 12) trails.shift();
+          ball.x += ball.vx;
+          ball.y += ball.vy;
+
+          if (ball.y - ball.r <= 0) {
+            ball.y = ball.r;
+            ball.vy = -ball.vy;
+            playBeep(880, 0.03);
+            spawnParticles(ball.x, ball.y, "#e6eef8", 8);
+          } else if (ball.y + ball.r >= height) {
+            ball.y = height - ball.r;
+            ball.vy = -ball.vy;
+            playBeep(880, 0.03);
+            spawnParticles(ball.x, ball.y, "#e6eef8", 8);
+          }
+
+          if (collidesPaddle(ball, leftPaddle) && ball.vx < 0) {
+            ball.x = leftPaddle.x + leftPaddle.width + ball.r;
+            const relY = leftPaddle.y + leftPaddle.height / 2 - ball.y;
+            const norm = relY / (leftPaddle.height / 2);
+            const bounce = norm * (Math.PI / 3);
+            const speed = Math.min(ball.speed * 1.06, 20);
+            ball.speed = speed;
+            ball.vx = Math.cos(bounce) * speed;
+            ball.vy = -Math.sin(bounce) * speed;
+            if (ball.vx < 0) ball.vx = Math.abs(ball.vx);
+            playBeep(680, 0.04);
+            spawnParticles(ball.x, ball.y, "#10b981", 14);
+          }
+
+          if (collidesPaddle(ball, rightPaddle) && ball.vx > 0) {
+            ball.x = rightPaddle.x - ball.r;
+            const relY = rightPaddle.y + rightPaddle.height / 2 - ball.y;
+            const norm = relY / (rightPaddle.height / 2);
+            const bounce = norm * (Math.PI / 3);
+            const speed = Math.min(ball.speed * 1.06, 20);
+            ball.speed = speed;
+            ball.vx = -Math.cos(bounce) * speed;
+            ball.vy = -Math.sin(bounce) * speed;
+            if (ball.vx > 0) ball.vx = -Math.abs(ball.vx);
+            playBeep(680, 0.04);
+            spawnParticles(ball.x, ball.y, "#f59e0b", 14);
+          }
+
+          if (ball.x - ball.r <= 0) {
+            rightScore++;
+            updateScores();
+            playBeep(260, 0.08);
+            spawnParticles(40, ball.y, "#ef4444", 24);
+            if (rightScore >= winningScore) {
+              endGame("Computer wins");
+              if (leftScore > 0)
+                addLeaderboardEntry(leftScore, selectedDifficulty);
+              return;
+            }
+            resetBall(false);
+          } else if (ball.x + ball.r >= width) {
+            leftScore++;
+            updateScores();
+            playBeep(260, 0.08);
+            spawnParticles(width - 40, ball.y, "#10b981", 24);
+            if (leftScore >= winningScore) {
+              endGame("You win!");
+              addLeaderboardEntry(leftScore, selectedDifficulty);
+              return;
+            }
+            resetBall(true);
+          }
+
+          for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.06;
+            p.life -= 1;
+            p.size *= 0.98;
+            if (p.life <= 0 || p.size <= 0.2) particles.splice(i, 1);
+          }
+        }
+
+        function drawNet() {
+          ctx.fillStyle = "rgba(255,255,255,0.06)";
+          const segment = 14,
+            gap = 8;
+          const cx = width / 2 - 1;
+          for (let y = 0; y < height; y += segment + gap)
+            ctx.fillRect(cx, y, 2, segment);
+        }
+
+        function draw() {
+          ctx.clearRect(0, 0, width, height);
+          ctx.fillStyle = "rgba(2,6,23,0.12)";
+          ctx.fillRect(0, 0, width, height);
+          for (let i = 0; i < trails.length; i++) {
+            const t = trails[i];
+            const alpha = ((i + 1) / trails.length) * 0.18;
+            ctx.fillStyle = `rgba(230,238,248,${alpha})`;
+            ctx.beginPath();
+            ctx.arc(t.x, t.y, ball.r * (0.6 - i * 0.03), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
+          }
+          drawNet();
+          ctx.save();
+          ctx.fillStyle = "#092526";
+          ctx.shadowColor = "#0ff6b0";
+          ctx.shadowBlur = 12;
+          roundRect(
+            ctx,
+            leftPaddle.x,
+            leftPaddle.y,
+            leftPaddle.width,
+            leftPaddle.height,
+            8,
+          );
+          ctx.shadowColor = "#ffb86b";
+          ctx.shadowBlur = 12;
+          roundRect(
+            ctx,
+            rightPaddle.x,
+            rightPaddle.y,
+            rightPaddle.width,
+            rightPaddle.height,
+            8,
+          );
+          ctx.restore();
+          const grad = ctx.createRadialGradient(
+            ball.x,
+            ball.y,
+            1,
+            ball.x,
+            ball.y,
+            ball.r * 5,
+          );
+          grad.addColorStop(0, "rgba(230,238,248,0.9)");
+          grad.addColorStop(0.2, "rgba(230,238,248,0.5)");
+          grad.addColorStop(1, "rgba(230,238,248,0.02)");
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(ball.x, ball.y, ball.r * 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.closePath();
+          ctx.beginPath();
+          ctx.fillStyle = "#e6eef8";
+          ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.closePath();
+          for (const p of particles) {
+            ctx.beginPath();
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = clamp(p.life / 70, 0, 1);
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
+            ctx.globalAlpha = 1;
+          }
+        }
+
+        function roundRect(ctx, x, y, w, h, r) {
+          ctx.beginPath();
+          ctx.moveTo(x + r, y);
+          ctx.arcTo(x + w, y, x + w, y + h, r);
+          ctx.arcTo(x + w, y + h, x, y + h, r);
+          ctx.arcTo(x, y + h, x, y, r);
+          ctx.arcTo(x, y, x + w, y, r);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        function loop() {
+          update();
+          draw();
+          if (running) requestAnimationFrame(loop);
+        }
+
+        function startGame() {
+          ensureAudio();
+          overlay.classList.remove("visible");
+          running = true;
+          paused = false;
+          leftScore = 0;
+          rightScore = 0;
+          updateScores();
+          resetBall(Math.random() >= 0.5);
+          leftPaddle.y = (height - leftPaddle.height) / 2;
+          rightPaddle.y = (height - rightPaddle.height) / 2;
+          const radio = document.querySelector(
+            'input[name="difficulty"]:checked',
+          );
+          if (radio) selectedDifficulty = radio.value;
+          const winVal = parseInt(winInput.value, 10);
+          if (!isNaN(winVal) && winVal > 0) winningScore = winVal;
+          localStorage.setItem(PREF_DIFF, selectedDifficulty);
+          localStorage.setItem(PREF_WIN, String(winningScore));
+          if (audioCtx && audioCtx.state === "suspended")
+            audioCtx.resume().catch(() => {});
+          updateLeaderboardDisplay();
+          requestAnimationFrame(loop);
+        }
+
+        function endGame(message) {
+          running = false;
+          paused = false;
+          document.getElementById("menuTitle").textContent = message;
+          overlay.classList.add("visible");
+          updateLeaderboardDisplay();
+        }
+
+        canvas.addEventListener("mousemove", (e) => {
+          const rect = canvas.getBoundingClientRect();
+          mouseY = e.clientY - rect.top;
+          mouseActive = true;
+        });
+        canvas.addEventListener("mouseleave", () => {
+          mouseActive = false;
+        });
+
+        window.addEventListener("keydown", (e) => {
+          if (["ArrowUp", "ArrowDown", "KeyW", "KeyS"].includes(e.code)) {
+            keys[e.code] = true;
+            e.preventDefault();
+          }
+          if (e.code === "Space" && running) {
+            paused = !paused;
+            if (paused) {
+              overlay.classList.add("visible");
+              document.getElementById("menuTitle").textContent = "Paused";
+            } else {
+              overlay.classList.remove("visible");
+            }
+            e.preventDefault();
+          }
+        });
+        window.addEventListener("keyup", (e) => {
+          if (["ArrowUp", "ArrowDown", "KeyW", "KeyS"].includes(e.code)) {
+            keys[e.code] = false;
+            e.preventDefault();
+          }
+        });
+
+        canvas.addEventListener(
+          "touchstart",
+          (e) => {
+            e.preventDefault();
+            touchActive = true;
+            const t = e.touches[0];
+            handleTouch(t);
+          },
+          { passive: false },
+        );
+        canvas.addEventListener(
+          "touchmove",
+          (e) => {
+            e.preventDefault();
+            const t = e.touches[0];
+            handleTouch(t);
+          },
+          { passive: false },
+        );
+        canvas.addEventListener(
+          "touchend",
+          (e) => {
+            e.preventDefault();
+            touchActive = false;
+          },
+          { passive: false },
+        );
+        function handleTouch(touch) {
+          const rect = canvas.getBoundingClientRect();
+          const y = touch.clientY - rect.top;
+          leftPaddle.y = clamp(
+            y - leftPaddle.height / 2,
+            0,
+            height - leftPaddle.height,
+          );
+        }
+
+        canvas.addEventListener("click", () => {
+          ensureAudio();
+          if (!running) startGame();
+        });
+        startBtn.addEventListener("click", () => {
+          ensureAudio();
+          if (audioCtx && audioCtx.state === "suspended")
+            audioCtx.resume().catch(() => {});
+          startGame();
+        });
+
+        pauseBtn.addEventListener("click", () => {
+          if (!running) return;
+          paused = !paused;
+          if (paused) {
+            overlay.classList.add("visible");
+            document.getElementById("menuTitle").textContent = "Paused";
+          } else {
+            overlay.classList.remove("visible");
+          }
+        });
+
+        resetBall(Math.random() >= 0.5);
+        updateScores();
+        updateLeaderboardDisplay();
+        draw();
+        overlay.classList.add("visible");
+
+        window.addEventListener("keydown", (e) => {
+          if (overlay.classList.contains("visible") && e.code === "Enter")
+            startBtn.click();
+        });
+
+        function ensureAudio() {
+          if (!audioCtx) {
+            try {
+              audioCtx = new (
+                window.AudioContext || window.webkitAudioContext
+              )();
+            } catch (e) {
+              audioCtx = null;
+            }
+          }
+        }
+        function playBeep(freq = 440, duration = 0.05, gain = 0.03) {
+          if (!soundToggle.checked) return;
+          ensureAudio();
+          if (!audioCtx) return;
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.type = "sine";
+          o.frequency.value = freq;
+          g.gain.value = gain;
+          o.connect(g);
+          g.connect(audioCtx.destination);
+          o.start();
+          setTimeout(() => o.stop(), duration * 1000);
+        }
+        function clamp(v, a, b) {
+          return Math.max(a, Math.min(b, v));
+        }
+      })();
+    </script>
+  </body>
+</html>
