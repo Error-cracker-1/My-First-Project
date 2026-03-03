@@ -932,35 +932,6 @@
           if (overlay.classList.contains("visible") && e.code === "Enter")
             startBtn.click();
         });
-
-        function ensureAudio() {
-          if (!audioCtx) {
-            try {
-              audioCtx = new (
-                window.AudioContext || window.webkitAudioContext
-              )();
-            } catch (e) {
-              audioCtx = null;
-            }
-          }
-        }
-        function playBeep(freq = 440, duration = 0.05, gain = 0.03) {
-          if (!soundToggle.checked) return;
-          ensureAudio();
-          if (!audioCtx) return;
-          const o = audioCtx.createOscillator();
-          const g = audioCtx.createGain();
-          o.type = "sine";
-          o.frequency.value = freq;
-          g.gain.value = gain;
-          o.connect(g);
-          g.connect(audioCtx.destination);
-          o.start();
-          setTimeout(() => o.stop(), duration * 1000);
-        }
-        function clamp(v, a, b) {
-          return Math.max(a, Math.min(b, v));
-        }
       })();
     </script>
   </body>
