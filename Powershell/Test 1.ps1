@@ -19,3 +19,4 @@ $greetingFunction = {
 $result = & $greetingFunction -name "Kumar"
 Write-Host $result  
 
+Read-Host "Press Enter to exit"

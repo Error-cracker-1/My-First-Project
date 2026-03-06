@@ -12,3 +12,5 @@ else {
 
 Write-Host "Today's Date:"
 Get-Date
+
+Read-Host "Press Enter to exit"

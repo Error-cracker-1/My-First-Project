@@ -74,3 +74,4 @@ Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 5 | ForE
 
 Write-Host "`nRunning Processes: $($(Get-Process).Count)" -ForegroundColor Magenta
 Write-Host "`n================================`n" -ForegroundColor Cyan
+Read-Host "Press Enter to exit"
