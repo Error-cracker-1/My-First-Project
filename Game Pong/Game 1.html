@@ -231,9 +231,60 @@
         color: var(--text);
         font-size: 14px;
       }
+
+      #welcomeScreen {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--bg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        z-index: 100;
+      }
+
+      #welcomeScreen h1 {
+        font-size: 3rem;
+        color: var(--accent);
+      }
+
+      #welcomeScreen p {
+        font-size: 1.2rem;
+        color: var(--muted);
+        margin-bottom: 2rem;
+      }
+
+      #welcomeScreen .testing-text {
+        color: #f59e0b; /* A shade of yellow */
+      }
+
+      #welcomeScreen button {
+        font-size: 1.5rem;
+        padding: 1rem 2rem;
+        background: var(--accent);
+        color: var(--bg);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      #welcomeScreen button:hover {
+        background: #10a875;
+      }
     </style>
   </head>
   <body>
+    <div id="welcomeScreen">
+      <h1>Welcome to Pong!</h1>
+      <p>Beta Version</p>
+      <p class="testing-text">Be the First For Testing The Game</p>
+      <button id="startWelcomeBtn">Start Game</button>
+    </div>
     <div id="container">
       <h1>Welcome to Pong Game</h1>
 
@@ -334,6 +385,13 @@
 
     <script>
       (function () {
+        const welcomeScreen = document.getElementById("welcomeScreen");
+        const startWelcomeBtn = document.getElementById("startWelcomeBtn");
+        
+        startWelcomeBtn.addEventListener("click", () => {
+          welcomeScreen.style.display = "none";
+        });
+
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const overlay = document.getElementById("overlay");
