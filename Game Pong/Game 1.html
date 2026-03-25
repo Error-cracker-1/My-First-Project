@@ -938,6 +938,14 @@
           requestAnimationFrame(loop);
         }
 
+        function resumeGame() {
+          if (!running) return;
+          paused = false;
+          overlay.classList.remove("visible");
+          syncBackgroundAudio();
+          requestAnimationFrame(loop);
+        }
+
         function endGame(message) {
           running = false;
           paused = false;
@@ -1029,13 +1037,12 @@
 
         pauseBtn.addEventListener("click", () => {
           if (!running) return;
-          paused = !paused;
           if (paused) {
+            resumeGame();
+          } else {
+            paused = true;
             overlay.classList.add("visible");
             document.getElementById("menuTitle").textContent = "Paused";
-          } else {
-            overlay.classList.remove("visible");
-            syncBackgroundAudio();
           }
         });
 
