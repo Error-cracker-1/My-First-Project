@@ -448,6 +448,7 @@
           paused = false;
         let audioCtx = null;
         let selectedDifficulty = localStorage.getItem(PREF_DIFF) || "normal";
+        let activeDifficulty = selectedDifficulty;
         let winningScore = parseInt(localStorage.getItem(PREF_WIN) || "10", 10);
 
         const paddleWidth = 12,
@@ -524,7 +525,7 @@
             bgAudio.pause();
             return;
           }
-          if (!running) return;
+          if (!running || paused) return;
           const playPromise = bgAudio.play();
           if (playPromise && typeof playPromise.catch === "function") {
             playPromise.catch(() => {});
@@ -722,7 +723,7 @@
             );
           }
 
-          const diff = difficulties[selectedDifficulty] || difficulties.normal;
+          const diff = difficulties[activeDifficulty] || difficulties.normal;
           let targetY;
           if (Math.random() < diff.reaction || Math.abs(ball.vx) < 0.001) {
             const predicted = predictBallY();
@@ -789,7 +790,7 @@
             if (rightScore >= winningScore) {
               endGame("Computer wins");
               if (leftScore > 0)
-                addLeaderboardEntry(leftScore, selectedDifficulty);
+                addLeaderboardEntry(leftScore, activeDifficulty);
               return;
             }
             resetBall(false);
@@ -800,7 +801,7 @@
             spawnParticles(width - 40, ball.y, "#10b981", 24);
             if (leftScore >= winningScore) {
               endGame("You win!");
-              addLeaderboardEntry(leftScore, selectedDifficulty);
+              addLeaderboardEntry(leftScore, activeDifficulty);
               return;
             }
             resetBall(true);
@@ -909,7 +910,7 @@
         function loop() {
           update();
           draw();
-          if (running) requestAnimationFrame(loop);
+          if (running && !paused) requestAnimationFrame(loop);
         }
 
         function setOverlayState(title, actionLabel) {
@@ -918,7 +919,7 @@
         }
 
         function pauseGame() {
-          if (!running) return;
+          if (!running || paused) return;
           paused = true;
           if (bgAudio) bgAudio.pause();
           setOverlayState("Paused", "Resume Game");
@@ -941,6 +942,7 @@
             'input[name="difficulty"]:checked',
           );
           if (radio) selectedDifficulty = radio.value;
+          activeDifficulty = selectedDifficulty;
           const winVal = parseInt(winInput.value, 10);
           if (!isNaN(winVal) && winVal > 0) winningScore = winVal;
           localStorage.setItem(PREF_DIFF, selectedDifficulty);
@@ -953,7 +955,7 @@
         }
 
         function resumeGame() {
-          if (!running) return;
+          if (!running || !paused) return;
           paused = false;
           overlay.classList.remove("visible");
           setOverlayState("Welcome to Pong", "Start Game");
