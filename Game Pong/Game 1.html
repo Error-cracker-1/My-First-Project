@@ -912,9 +912,23 @@
           if (running) requestAnimationFrame(loop);
         }
 
+        function setOverlayState(title, actionLabel) {
+          document.getElementById("menuTitle").textContent = title;
+          startBtn.textContent = actionLabel;
+        }
+
+        function pauseGame() {
+          if (!running) return;
+          paused = true;
+          if (bgAudio) bgAudio.pause();
+          setOverlayState("Paused", "Resume Game");
+          overlay.classList.add("visible");
+        }
+
         function startGame() {
           ensureAudio();
           overlay.classList.remove("visible");
+          setOverlayState("Welcome to Pong", "Start Game");
           running = true;
           paused = false;
           leftScore = 0;
@@ -942,6 +956,7 @@
           if (!running) return;
           paused = false;
           overlay.classList.remove("visible");
+          setOverlayState("Welcome to Pong", "Start Game");
           syncBackgroundAudio();
           requestAnimationFrame(loop);
         }
@@ -950,7 +965,7 @@
           running = false;
           paused = false;
           if (bgAudio) bgAudio.pause();
-          document.getElementById("menuTitle").textContent = message;
+          setOverlayState(message, "Start Game");
           overlay.classList.add("visible");
           updateLeaderboardDisplay();
         }
@@ -969,16 +984,10 @@
             keys[e.code] = true;
           }
           if (e.code === "Space" && running) {
-            paused = !paused;
-            if (paused) {
-              if (bgAudio) bgAudio.pause();
-              overlay.classList.add("visible");
-              document.getElementById("menuTitle").textContent = "Paused";
-            } else {
-              overlay.classList.remove("visible");
-            }
+            if (paused) resumeGame();
+            else pauseGame();
           }
-          if (e.code === "Escape" && running) pauseBtn.click();   
+          if (e.code === "Escape" && running) pauseBtn.click();
         });
         window.addEventListener("keyup", (e) => {
           if (["ArrowUp", "ArrowDown", "KeyW", "KeyS"].includes(e.code)) {
@@ -1032,24 +1041,21 @@
           ensureAudio();
           if (audioCtx && audioCtx.state === "suspended")
             audioCtx.resume().catch(() => {});
-          startGame();
+          if (running && paused) resumeGame();
+          else startGame();
         });
 
         pauseBtn.addEventListener("click", () => {
           if (!running) return;
-          if (paused) {
-            resumeGame();
-          } else {
-            paused = true;
-            overlay.classList.add("visible");
-            document.getElementById("menuTitle").textContent = "Paused";
-          }
+          if (paused) resumeGame();
+          else pauseGame();
         });
 
         resetBall(Math.random() >= 0.5);
         updateScores();
         updateLeaderboardDisplay();
         draw();
+        setOverlayState("Welcome to Pong", "Start Game");
         overlay.classList.add("visible");
 
         window.addEventListener("keydown", (e) => {
