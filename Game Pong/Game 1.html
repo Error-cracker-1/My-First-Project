@@ -435,11 +435,10 @@
         const PREF_WIN = "pong_winscore_v1";
         const TOP_N = 5;
 
-        // NOTE: increased difficulty values here
         const difficulties = {
-          easy: { aiSpeed: 3.0, reaction: 0.18, error: 0.18 }, // stronger easy
-          normal: { aiSpeed: 4.5, reaction: 0.26, error: 0.08 }, // stronger normal
-          hard: { aiSpeed: 6.5, reaction: 0.38, error: 0.02 }, // much stronger hard
+          easy: { aiSpeed: 3.0, trackChance: 0.45, error: 0.18, recovery: 0.25, deadZone: 10, retargetFrames: 18, startSpeed: 4.2, speedBoost: 1.03, maxBallSpeed: 14 },
+          normal: { aiSpeed: 4.8, trackChance: 0.72, error: 0.08, recovery: 0.55, deadZone: 6, retargetFrames: 10, startSpeed: 5.3, speedBoost: 1.06, maxBallSpeed: 18 },
+          hard: { aiSpeed: 7.6, trackChance: 0.98, error: 0.01, recovery: 0.9, deadZone: 2, retargetFrames: 5, startSpeed: 6.2, speedBoost: 1.1, maxBallSpeed: 24 },
         };
 
         let leftScore = 0,
@@ -450,6 +449,7 @@
         let selectedDifficulty = localStorage.getItem(PREF_DIFF) || "normal";
         let activeDifficulty = selectedDifficulty;
         let winningScore = parseInt(localStorage.getItem(PREF_WIN) || "10", 10);
+        let pendingNewMatch = false;
 
         const paddleWidth = 12,
           paddleHeight = 90;
@@ -486,12 +486,19 @@
         const particles = [];
         const MAX_PARTICLES = 120;
         const trails = [];
+        let aiTargetY = (height - paddleHeight) / 2;
+        let aiRetargetFramesLeft = 0;
+        let aiTrackingBall = false;
 
         document.querySelectorAll('input[name="difficulty"]').forEach((r) => {
           if (r.value === selectedDifficulty) r.checked = true;
           r.addEventListener("change", (e) => {
             selectedDifficulty = e.target.value;
             localStorage.setItem(PREF_DIFF, selectedDifficulty);
+            if (running) {
+              pendingNewMatch = true;
+              if (paused) setOverlayState("Settings Changed", "Start New Match");
+            }
           });
         });
 
@@ -501,7 +508,12 @@
           if (isNaN(v) || v < 1) v = 1;
           if (v > 50) v = 50;
           winningScore = v;
+          winInput.value = String(v);
           localStorage.setItem(PREF_WIN, String(winningScore));
+          if (running) {
+            pendingNewMatch = true;
+            if (paused) setOverlayState("Settings Changed", "Start New Match");
+          }
         });
 
         const storedSound = localStorage.getItem(PREF_SOUND);
@@ -635,11 +647,18 @@
         function clamp(v, a, b) {
           return Math.max(a, Math.min(b, v));
         }
+        function resetAiTracking() {
+          aiTargetY = (height - rightPaddle.height) / 2;
+          aiRetargetFramesLeft = 0;
+          aiTrackingBall = false;
+        }
         function resetBall(toRight = true) {
+          const diff = difficulties[activeDifficulty] || difficulties.normal;
           ball.x = width / 2;
           ball.y = height / 2;
-          ball.speed = 5;
+          ball.speed = diff.startSpeed;
           trails.length = 0;
+          resetAiTracking();
           const angle = (Math.random() * Math.PI) / 4 - Math.PI / 8;
           const dir = toRight ? 1 : -1;
           ball.vx = Math.cos(angle) * ball.speed * dir;
@@ -724,17 +743,34 @@
           }
 
           const diff = difficulties[activeDifficulty] || difficulties.normal;
-          let targetY;
-          if (Math.random() < diff.reaction || Math.abs(ball.vx) < 0.001) {
-            const predicted = predictBallY();
-            const errorRange = diff.error * height;
-            const error = (Math.random() * 2 - 1) * errorRange;
-            targetY = predicted + error - rightPaddle.height / 2;
+          const ballMovingToAi = ball.vx > 0;
+          const homeY = (height - rightPaddle.height) / 2;
+          const trackingBall = ballMovingToAi || Math.abs(ball.vx) < 0.001;
+
+          if (aiRetargetFramesLeft <= 0 || aiTrackingBall !== trackingBall) {
+            aiTrackingBall = trackingBall;
+            if (trackingBall) {
+              const predictedY =
+                Math.random() < diff.trackChance || Math.abs(ball.vx) < 0.001
+                  ? predictBallY()
+                  : ball.y;
+              const errorRange = diff.error * height;
+              const error = (Math.random() * 2 - 1) * errorRange;
+              aiTargetY = predictedY + error - rightPaddle.height / 2;
+            } else {
+              const followY = ball.y - rightPaddle.height / 2;
+              aiTargetY = homeY + (followY - homeY) * diff.recovery;
+            }
+            aiRetargetFramesLeft = diff.retargetFrames;
           } else {
-            targetY = ball.y - rightPaddle.height / 2;
+            aiRetargetFramesLeft--;
           }
-          if (rightPaddle.y < targetY - 2) rightPaddle.y += diff.aiSpeed;
-          else if (rightPaddle.y > targetY + 2) rightPaddle.y -= diff.aiSpeed;
+
+          const moveStep = ballMovingToAi
+            ? diff.aiSpeed
+            : diff.aiSpeed * (0.55 + diff.recovery * 0.35);
+          if (rightPaddle.y < aiTargetY - diff.deadZone) rightPaddle.y += moveStep;
+          else if (rightPaddle.y > aiTargetY + diff.deadZone) rightPaddle.y -= moveStep;
           rightPaddle.y = clamp(rightPaddle.y, 0, height - rightPaddle.height);
 
           trails.push({ x: ball.x, y: ball.y, a: 0.7 });
@@ -755,11 +791,12 @@
           }
 
           if (collidesPaddle(ball, leftPaddle) && ball.vx < 0) {
+            const diff = difficulties[activeDifficulty] || difficulties.normal;
             ball.x = leftPaddle.x + leftPaddle.width + ball.r;
             const relY = leftPaddle.y + leftPaddle.height / 2 - ball.y;
             const norm = relY / (leftPaddle.height / 2);
             const bounce = norm * (Math.PI / 3);
-            const speed = Math.min(ball.speed * 1.06, 20);
+            const speed = Math.min(ball.speed * diff.speedBoost, diff.maxBallSpeed);
             ball.speed = speed;
             ball.vx = Math.cos(bounce) * speed;
             ball.vy = -Math.sin(bounce) * speed;
@@ -769,11 +806,12 @@
           }
 
           if (collidesPaddle(ball, rightPaddle) && ball.vx > 0) {
+            const diff = difficulties[activeDifficulty] || difficulties.normal;
             ball.x = rightPaddle.x - ball.r;
             const relY = rightPaddle.y + rightPaddle.height / 2 - ball.y;
             const norm = relY / (rightPaddle.height / 2);
             const bounce = norm * (Math.PI / 3);
-            const speed = Math.min(ball.speed * 1.06, 20);
+            const speed = Math.min(ball.speed * diff.speedBoost, diff.maxBallSpeed);
             ball.speed = speed;
             ball.vx = -Math.cos(bounce) * speed;
             ball.vy = -Math.sin(bounce) * speed;
@@ -921,6 +959,7 @@
         function pauseGame() {
           if (!running || paused) return;
           paused = true;
+          pendingNewMatch = false;
           if (bgAudio) bgAudio.pause();
           setOverlayState("Paused", "Resume Game");
           overlay.classList.add("visible");
@@ -932,12 +971,14 @@
           setOverlayState("Welcome to Pong", "Start Game");
           running = true;
           paused = false;
+          pendingNewMatch = false;
           leftScore = 0;
           rightScore = 0;
           updateScores();
           resetBall(Math.random() >= 0.5);
           leftPaddle.y = (height - leftPaddle.height) / 2;
           rightPaddle.y = (height - rightPaddle.height) / 2;
+          resetAiTracking();
           const radio = document.querySelector(
             'input[name="difficulty"]:checked',
           );
@@ -957,6 +998,7 @@
         function resumeGame() {
           if (!running || !paused) return;
           paused = false;
+          pendingNewMatch = false;
           overlay.classList.remove("visible");
           setOverlayState("Welcome to Pong", "Start Game");
           syncBackgroundAudio();
@@ -966,6 +1008,7 @@
         function endGame(message) {
           running = false;
           paused = false;
+          pendingNewMatch = false;
           if (bgAudio) bgAudio.pause();
           setOverlayState(message, "Start Game");
           overlay.classList.add("visible");
@@ -1043,13 +1086,14 @@
           ensureAudio();
           if (audioCtx && audioCtx.state === "suspended")
             audioCtx.resume().catch(() => {});
-          if (running && paused) resumeGame();
+          if (running && paused && !pendingNewMatch) resumeGame();
           else startGame();
         });
 
         pauseBtn.addEventListener("click", () => {
           if (!running) return;
-          if (paused) resumeGame();
+          if (paused && !pendingNewMatch) resumeGame();
+          else if (paused) startGame();
           else pauseGame();
         });
 
