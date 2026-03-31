@@ -436,9 +436,9 @@
         const TOP_N = 5;
 
         const difficulties = {
-          easy: { aiSpeed: 3.0, trackChance: 0.45, error: 0.18, recovery: 0.25, deadZone: 10, retargetFrames: 18, startSpeed: 4.2, speedBoost: 1.03, maxBallSpeed: 14 },
-          normal: { aiSpeed: 4.8, trackChance: 0.72, error: 0.08, recovery: 0.55, deadZone: 6, retargetFrames: 10, startSpeed: 5.3, speedBoost: 1.06, maxBallSpeed: 18 },
-          hard: { aiSpeed: 7.6, trackChance: 0.98, error: 0.01, recovery: 0.9, deadZone: 2, retargetFrames: 5, startSpeed: 6.2, speedBoost: 1.1, maxBallSpeed: 24 },
+          easy: { aiSpeed: 2.8, trackChance: 0.45, error: 0.18, recovery: 0.25, deadZone: 12, retargetFrames: 24, startSpeed: 4.2, speedBoost: 1.03, maxBallSpeed: 14 },
+          normal: { aiSpeed: 4.2, trackChance: 0.72, error: 0.08, recovery: 0.55, deadZone: 10, retargetFrames: 20, startSpeed: 5.3, speedBoost: 1.06, maxBallSpeed: 18 },
+          hard: { aiSpeed: 6.8, trackChance: 0.98, error: 0.01, recovery: 0.9, deadZone: 8, retargetFrames: 12, startSpeed: 6.2, speedBoost: 1.1, maxBallSpeed: 24 },
         };
 
         let leftScore = 0,
@@ -768,9 +768,15 @@
 
           const moveStep = ballMovingToAi
             ? diff.aiSpeed
-            : diff.aiSpeed * (0.55 + diff.recovery * 0.35);
-          if (rightPaddle.y < aiTargetY - diff.deadZone) rightPaddle.y += moveStep;
-          else if (rightPaddle.y > aiTargetY + diff.deadZone) rightPaddle.y -= moveStep;
+            : diff.aiSpeed * 0.65;
+          const paddleCenter = rightPaddle.y + rightPaddle.height / 2;
+          const distToTarget = aiTargetY - paddleCenter;
+          
+          if (Math.abs(distToTarget) > diff.deadZone) {
+            const easedStep = Math.max(moveStep * 0.3, Math.min(moveStep, Math.abs(distToTarget) * 0.4));
+            if (distToTarget > 0) rightPaddle.y += easedStep;
+            else rightPaddle.y -= easedStep;
+          }
           rightPaddle.y = clamp(rightPaddle.y, 0, height - rightPaddle.height);
 
           trails.push({ x: ball.x, y: ball.y, a: 0.7 });
