@@ -106,6 +106,7 @@
           rgba(0, 0, 0, 0.12)
         );
         border: 1px solid rgba(255, 255, 255, 0.04);
+        -webkit-backdrop-filter: blur(6px);
         backdrop-filter: blur(6px);
         box-shadow: 0 10px 40px rgba(2, 6, 23, 0.6);
         text-align: left;
@@ -210,8 +211,8 @@
         border-radius: 6px;
         color: var(--text);
         width: 84px;
-        appearance: textfield;
         -webkit-appearance: textfield;
+        appearance: textfield;
       }
       .menu input[type="number"]::-webkit-outer-spin-button,
       .menu input[type="number"]::-webkit-inner-spin-button {
@@ -289,7 +290,7 @@
       <h1>Welcome to Pong!</h1>
       <p>Beta Version</p>
       <p class="testing-text">Be the First For Testing The Game</p>
-      <button id="startWelcomeBtn">Start Game</button>
+      <button id="startWelcomeBtn" type="button">Start Game</button>
     </div>
     <div id="container">
       <h1>Welcome to Pong Game</h1>
@@ -313,8 +314,8 @@
             <h2 id="menuTitle">Welcome to Pong</h2>
 
             <div class="row">
-              <label>Difficulty:</label>
-              <div class="choices">
+              <span class="inline">Difficulty:</span>
+              <div class="choices" role="group" aria-label="Difficulty">
                 <label
                   ><input type="radio" name="difficulty" value="easy" />
                   Easy</label
@@ -336,12 +337,12 @@
             </div>
 
             <div class="row">
-              <label>Winning score:</label>
+              <label for="winInput">Winning score:</label>
               <input id="winInput" type="number" min="1" max="50" value="10" />
             </div>
 
             <div class="row">
-              <label>Controls:</label>
+              <span class="inline">Controls:</span>
               <div class="desc">
                 Mouse (move over canvas), Touch (drag/tap) or Keyboard: W/S and
                 Arrow Up/Down
@@ -349,14 +350,14 @@
             </div>
 
             <div class="row">
-              <label>Sound:</label>
+              <span class="inline">Sound:</span>
               <label class="inline"
                 ><input id="menuSoundToggle" type="checkbox" /> Enable
                 sound</label
               >
             </div>
             <div class="row">
-              <label>Background volume:</label>
+              <label for="bgVolume">Background volume:</label>
               <input
                 id="bgVolume"
                 type="range"
@@ -369,18 +370,18 @@
             </div>
 
             <div class="row">
-              <label>High Score:</label>
+              <span class="inline">High Score:</span>
               <div id="highScore">0</div>
             </div>
 
             <div class="row">
-              <label>Leaderboard:</label>
+              <span class="inline">Leaderboard:</span>
               <ol id="leaderboard" class="leaderboard"></ol>
             </div>
 
             <div class="row actions">
-              <button id="startBtn">Start Game</button>
-              <button id="resetLeader">Reset Leaderboard</button>
+              <button id="startBtn" type="button">Start Game</button>
+              <button id="resetLeader" type="button">Reset Leaderboard</button>
             </div>
 
             <p class="small">
@@ -392,7 +393,7 @@
       </div>
 
       <div id="controls">
-        <button id="pauseBtn">Pause</button>
+        <button id="pauseBtn" type="button">Pause</button>
         <label><input id="soundToggle" type="checkbox" /> Sound</label>
       </div>
 
@@ -1131,3 +1132,6 @@
     </script>
   </body>
 </html>
+
+
+
