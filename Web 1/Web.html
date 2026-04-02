@@ -55,6 +55,7 @@
         background: rgba(255, 255, 255, 0.08);
         padding: 6px 8px;
         border-radius: 8px;
+        -webkit-backdrop-filter: blur(4px);
         backdrop-filter: blur(4px);
       }
 
@@ -84,10 +85,10 @@
             isBouncing = !isBouncing;
             if (isBouncing) {
               bounce();
-              this.innerText = "Stop Bouncing";
+              this.textContent = "Stop Bouncing";
             } else {
               document.querySelector(".container").style.transform = "none";
-              this.innerText = "Start Bouncing";
+              this.textContent = "Start Bouncing";
             }
           });
 
@@ -98,7 +99,7 @@
           audio.volume = v;
           if (audio.muted && v > 0) {
             audio.muted = false;
-            if (muteButton) muteButton.innerText = "Mute";
+            if (muteButton) muteButton.textContent = "Mute";
           }
         });
 
@@ -106,18 +107,18 @@
         slider.value = audio.volume;
 
         // Ensure the mute button text matches current state
-        if (muteButton) muteButton.innerText = audio.muted ? "Unmute" : "Mute";
+        if (muteButton) muteButton.textContent = audio.muted ? "Unmute" : "Mute";
 
         // Keep the slider and mute button in sync if volume or muted change programmatically
         audio.addEventListener("volumechange", function () {
           slider.value = audio.volume;
-          if (muteButton) muteButton.innerText = audio.muted ? "Unmute" : "Mute";
+          if (muteButton) muteButton.textContent = audio.muted ? "Unmute" : "Mute";
         });
 
         if (muteButton) {
           muteButton.addEventListener("click", function () {
             audio.muted = !audio.muted;
-            this.innerText = audio.muted ? "Unmute" : "Mute";
+            this.textContent = audio.muted ? "Unmute" : "Mute";
           });
         }
 
@@ -134,7 +135,7 @@
             )
               return;
             audio.muted = !audio.muted;
-            if (muteButton) muteButton.innerText = audio.muted ? "Unmute" : "Mute";
+            if (muteButton) muteButton.textContent = audio.muted ? "Unmute" : "Mute";
           } catch (err) {
             console.error(err);
           }
@@ -182,6 +183,7 @@
     ></audio>
 
     <div class="controls">
+      <label for="volumeSlider">Volume</label>
       <input
         type="range"
         id="volumeSlider"
@@ -201,4 +203,7 @@
     </div>
   </body>
 </html>
+
+
+
 
