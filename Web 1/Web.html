@@ -49,22 +49,69 @@
         top: 20px;
         right: 20px;
         z-index: 1000;
+      }
+
+      .menuButton {
+        width: 48px;
+        height: 48px;
+        border: none;
+        border-radius: 999px;
+        font-size: 1.6rem;
+        font-weight: bold;
+        cursor: pointer;
+        color: white;
+        background: rgba(0, 0, 0, 0.55);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+      }
+
+      .menuPanel {
+        position: absolute;
+        top: 58px;
+        right: 0;
+        min-width: 220px;
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+      }
+
+      .controls.open .menuPanel {
         display: flex;
-        gap: 8px;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.08);
-        padding: 6px 8px;
+      }
+
+      .menuRow {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .menuPanel button {
+        padding: 10px 12px;
+        border: none;
         border-radius: 8px;
-        -webkit-backdrop-filter: blur(4px);
-        backdrop-filter: blur(4px);
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      .menuPanel label {
+        font-size: 1rem;
       }
 
       #volumeSlider {
-        width: 180px;
+        width: 100%;
       }
     </style>
     <script>
       var isBouncing = true;
+      var isFlashing = true;
+      var isConsoleSpamRunning = true;
+      var consoleSpamInterval;
       function bounce() {
         if (!isBouncing) return;
         var container = document.querySelector(".container");
@@ -78,21 +125,58 @@
         var audio = document.getElementById("annoyingSound");
         var slider = document.getElementById("volumeSlider");
         var muteButton = document.getElementById("muteButton");
+        var stopBounceButton = document.getElementById("stopButton");
+        var stopFlashButton = document.getElementById("flashButton");
+        var stopConsoleButton = document.getElementById("consoleSpamButton");
+        var menuButton = document.getElementById("menuButton");
+        var controls = document.querySelector(".controls");
+        var container = document.querySelector(".container");
 
-        document
-          .getElementById("stopButton")
-          .addEventListener("click", function () {
-            isBouncing = !isBouncing;
-            if (isBouncing) {
-              bounce();
-              this.textContent = "Stop Bouncing";
-            } else {
-              document.querySelector(".container").style.transform = "none";
-              this.textContent = "Start Bouncing";
-            }
-          });
+        stopBounceButton.addEventListener("click", function () {
+          isBouncing = !isBouncing;
+          if (isBouncing) {
+            bounce();
+            this.textContent = "Stop Bouncing";
+          } else {
+            container.style.transform = "none";
+            this.textContent = "Start Bouncing";
+          }
+        });
 
-        // Pointer-based behaviors removed — buttons remain static and clickable
+        stopFlashButton.addEventListener("click", function () {
+          isFlashing = !isFlashing;
+          if (isFlashing) {
+            container.style.animation = "flash 0.1s infinite";
+            this.textContent = "Stop Flashing";
+          } else {
+            container.style.animation = "none";
+            container.style.backgroundColor = "red";
+            container.style.color = "black";
+            this.textContent = "Start Flashing";
+          }
+        });
+
+        stopConsoleButton.addEventListener("click", function () {
+          isConsoleSpamRunning = !isConsoleSpamRunning;
+          if (isConsoleSpamRunning) {
+            startConsoleSpam();
+            this.textContent = "Stop Console Spam";
+          } else {
+            clearInterval(consoleSpamInterval);
+            this.textContent = "Start Console Spam";
+          }
+        });
+
+        menuButton.addEventListener("click", function (event) {
+          event.stopPropagation();
+          controls.classList.toggle("open");
+        });
+
+        document.addEventListener("click", function (event) {
+          if (!controls.contains(event.target)) {
+            controls.classList.remove("open");
+          }
+        });
 
         slider.addEventListener("input", function () {
           var v = parseFloat(this.value);
@@ -103,13 +187,10 @@
           }
         });
 
-        // Initialize slider to reflect actual audio volume
         slider.value = audio.volume;
 
-        // Ensure the mute button text matches current state
         if (muteButton) muteButton.textContent = audio.muted ? "Unmute" : "Mute";
 
-        // Keep the slider and mute button in sync if volume or muted change programmatically
         audio.addEventListener("volumechange", function () {
           slider.value = audio.volume;
           if (muteButton) muteButton.textContent = audio.muted ? "Unmute" : "Mute";
@@ -122,7 +203,6 @@
           });
         }
 
-        // Keyboard shortcut: press 'M' to toggle mute (ignore when typing)
         document.addEventListener("keydown", function (e) {
           try {
             if (!e.key) return;
@@ -141,15 +221,19 @@
           }
         });
 
-        // Spam the debug console
-        setInterval(function () {
-          console.log(
-            "%c YOU ARE AN IDIOT ",
-            "background: red; color: yellow; font-size: x-large",
-          );
-          console.error("CRITICAL ERROR: USER IDIOT DETECTED");
-          console.warn("System instability due to idiot user");
-        }, 200);
+        function startConsoleSpam() {
+          clearInterval(consoleSpamInterval);
+          consoleSpamInterval = setInterval(function () {
+            console.log(
+              "%c YOU ARE AN IDIOT ",
+              "background: red; color: yellow; font-size: x-large",
+            );
+            console.error("CRITICAL ERROR: USER IDIOT DETECTED");
+            console.warn("System instability due to idiot user");
+          }, 200);
+        }
+
+        startConsoleSpam();
 
         audio
           .play()
@@ -183,17 +267,26 @@
     ></audio>
 
     <div class="controls">
-      <label for="volumeSlider">Volume</label>
-      <input
-        type="range"
-        id="volumeSlider"
-        min="0"
-        max="1"
-        step="0.01"
-        value="1"
-      />
-      <button id="muteButton">Mute</button>
-      <button id="stopButton">Stop Bouncing</button>
+      <button id="menuButton" class="menuButton" aria-label="Open options">
+        ...
+      </button>
+      <div class="menuPanel">
+        <div class="menuRow">
+          <label for="volumeSlider">Volume</label>
+          <input
+            type="range"
+            id="volumeSlider"
+            min="0"
+            max="1"
+            step="0.01"
+            value="1"
+          />
+        </div>
+        <button id="muteButton">Mute</button>
+        <button id="stopButton">Stop Bouncing</button>
+        <button id="flashButton">Stop Flashing</button>
+        <button id="consoleSpamButton">Stop Console Spam</button>
+      </div>
     </div>
     <div class="container">
       <h1><b>YOu Are an Idiot!!!!!!!!!!!!</b></h1>
@@ -203,6 +296,7 @@
     </div>
   </body>
 </html>
+
 
 
 
