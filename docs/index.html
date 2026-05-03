@@ -3,331 +3,48 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Docs Showcase</title>
-    <style>
-      :root {
-        --bg: #0b1020;
-        --panel: rgba(12, 19, 41, 0.78);
-        --panel-strong: rgba(18, 28, 58, 0.92);
-        --line: rgba(255, 255, 255, 0.12);
-        --text: #f7f4ea;
-        --muted: #b7bfd4;
-        --accent: #ff8a3d;
-        --accent-2: #4fd1c5;
-        --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      html {
-        scroll-behavior: smooth;
-      }
-
-      body {
-        margin: 0;
-        min-height: 100vh;
-        color: var(--text);
-        font-family: Georgia, "Times New Roman", serif;
-        background:
-          radial-gradient(circle at top left, rgba(255, 138, 61, 0.22), transparent 30%),
-          radial-gradient(circle at top right, rgba(79, 209, 197, 0.18), transparent 26%),
-          linear-gradient(135deg, #07101e 0%, #0b1020 40%, #121b37 100%);
-      }
-
-      a {
-        color: inherit;
-        text-decoration: none;
-      }
-
-      .page {
-        width: min(1120px, calc(100% - 32px));
-        margin: 0 auto;
-        padding: 24px 0 56px;
-      }
-
-      .hero {
-        position: relative;
-        overflow: hidden;
-        padding: 28px;
-        border: 1px solid var(--line);
-        border-radius: 28px;
-        background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
-        box-shadow: var(--shadow);
-      }
-
-      .hero::before,
-      .hero::after {
-        content: "";
-        position: absolute;
-        border-radius: 999px;
-        filter: blur(8px);
-        opacity: 0.85;
-      }
-
-      .hero::before {
-        width: 220px;
-        height: 220px;
-        right: -60px;
-        top: -50px;
-        background: rgba(255, 138, 61, 0.18);
-      }
-
-      .hero::after {
-        width: 180px;
-        height: 180px;
-        left: -40px;
-        bottom: -60px;
-        background: rgba(79, 209, 197, 0.14);
-      }
-
-      .topbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
-        margin-bottom: 36px;
-      }
-
-      .brand {
-        display: inline-flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 0.95rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: var(--muted);
-      }
-
-      .badge {
-        padding: 8px 12px;
-        border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        background: rgba(255, 255, 255, 0.06);
-      }
-
-      .hero-grid {
-        display: grid;
-        grid-template-columns: 1.3fr 0.9fr;
-        gap: 24px;
-        align-items: end;
-      }
-
-      h1 {
-        margin: 0 0 16px;
-        font-size: clamp(2.8rem, 6vw, 5.5rem);
-        line-height: 0.95;
-        letter-spacing: -0.04em;
-      }
-
-      .lead {
-        max-width: 640px;
-        margin: 0;
-        color: var(--muted);
-        font-size: 1.06rem;
-        line-height: 1.7;
-      }
-
-      .hero-card {
-        padding: 22px;
-        border-radius: 22px;
-        border: 1px solid var(--line);
-        background: var(--panel);
-        -webkit-backdrop-filter: blur(12px);
-        backdrop-filter: blur(12px);
-      }
-
-      .hero-card h2 {
-        margin: 0 0 10px;
-        font-size: 1.15rem;
-      }
-
-      .hero-card p {
-        margin: 0 0 18px;
-        color: var(--muted);
-        line-height: 1.6;
-      }
-
-      .button-row {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-      }
-
-      .button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        padding: 12px 18px;
-        border-radius: 999px;
-        border: 1px solid transparent;
-        transition:
-          transform 180ms ease,
-          border-color 180ms ease,
-          background 180ms ease;
-      }
-
-      .button:hover {
-        transform: translateY(-2px);
-      }
-
-      .button-primary {
-        color: #1c140d;
-        background: linear-gradient(135deg, #ffd166, var(--accent));
-      }
-
-      .button-secondary {
-        border-color: var(--line);
-        background: rgba(255, 255, 255, 0.05);
-      }
-
-      .section {
-        margin-top: 28px;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 18px;
-      }
-
-      .card {
-        position: relative;
-        overflow: hidden;
-        min-height: 260px;
-        padding: 22px;
-        border-radius: 24px;
-        border: 1px solid var(--line);
-        background: var(--panel-strong);
-        box-shadow: var(--shadow);
-        transition:
-          transform 180ms ease,
-          border-color 180ms ease;
-      }
-
-      .card:hover {
-        transform: translateY(-4px);
-        border-color: rgba(255, 255, 255, 0.24);
-      }
-
-      .card::after {
-        content: "";
-        position: absolute;
-        inset: auto -20% -40% auto;
-        width: 180px;
-        height: 180px;
-        border-radius: 50%;
-        opacity: 0.18;
-      }
-
-      .card-pong::after {
-        background: #4fd1c5;
-      }
-
-      .card-web::after {
-        background: #ff8a3d;
-      }
-
-      .card-links::after {
-        background: #9f7aea;
-      }
-
-      .eyebrow {
-        margin: 0 0 12px;
-        color: var(--accent-2);
-        font-size: 0.8rem;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-      }
-
-      .card h3 {
-        margin: 0 0 12px;
-        font-size: 1.55rem;
-      }
-
-      .card p {
-        margin: 0 0 20px;
-        color: var(--muted);
-        line-height: 1.7;
-      }
-
-      .card ul {
-        margin: 0 0 22px;
-        padding-left: 18px;
-        color: var(--muted);
-        line-height: 1.7;
-      }
-
-      .mini-links {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-
-      .mini-links a {
-        padding: 10px 14px;
-        border-radius: 999px;
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.04);
-      }
-
-      footer {
-        margin-top: 22px;
-        padding: 18px 4px 0;
-        color: var(--muted);
-        text-align: center;
-      }
-
-      @media (max-width: 900px) {
-        .hero-grid,
-        .section {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      @media (max-width: 640px) {
-        .page {
-          width: min(100% - 20px, 1120px);
-          padding-top: 10px;
-        }
-
-        .hero {
-          padding: 20px;
-          border-radius: 22px;
-        }
-      }
-    </style>
+    <title>Website</title>
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main class="page">
       <section class="hero">
         <div class="topbar">
           <div class="brand">
-            <span class="badge">Docs Folder</span>
-            <span>New Showcase Page</span>
+            <span class="badge">Website</span>
+            <span>Game and More</span>
           </div>
-          <div class="badge">Clean links to your existing projects</div>
+          <div class="badge">Clean links to all projects</div>
         </div>
 
         <div class="hero-grid">
           <div>
             <h1>Build, play, and explore from one page.</h1>
             <p class="lead">
-              This is a new landing page inside your <code>docs</code> folder.
-              It does not change your old files. It just gives your folder a
-              better-looking entry point with useful hyperlinks.
+              There is always something new to discover in this projects.<br />
+              Here you can quickly jump into Pong game, check out the web page,
             </p>
           </div>
 
           <aside class="hero-card">
             <h2>Quick Start</h2>
             <p>
-              Open one page to reach your Pong game, your web page, and a few
-              useful learning links.
+              Open one page to reach the Pong game, and Web page, and a few
+              useful links.<br />
+              This a type of virus page but in a good way, because this is only
+              apperance of the original virus You are an idoit virus
+            </p>
+            <p class="warning">
+              (Attention: Lower the volume and brightness before opening the Web
+              Page, because it has some bright colors and sounds.)
             </p>
             <div class="button-row">
-              <a class="button button-primary" href="./Game Pong/Game 1.html">Open Pong</a>
-              <a class="button button-secondary" href="./Web 1/Web.html">Open Web Page</a>
+              <a class="button button-primary" href="./Game Pong/Game 1.html"
+                >Open Pong</a
+              >
+              <a class="button button-secondary" href="./Web 1/Web.html"
+                >Open Web Page</a
+              >
             </div>
           </aside>
         </div>
@@ -335,27 +52,39 @@
 
       <section class="section">
         <article class="card card-pong">
-          <p class="eyebrow">Project One</p>
+          <p class="eyebrow">Game</p>
           <h3>Pong Game</h3>
           <p>
-            Launch your existing game directly from this page. This makes the
-            docs folder feel like a real mini website instead of a list of
-            separate files.
+            Launch the Pong game you created in the Game folder.<br />
+            It's a fun way to see the coding skills in action and play a classic
+            game you built!
           </p>
           <div class="button-row">
-            <a class="button button-primary" href="./Game Pong/Game 1.html">Play Now</a>
+            <a class="button button-primary" href="./Game Pong/Game 1.html"
+              >Play Now</a
+            >
           </div>
         </article>
 
         <article class="card card-web">
-          <p class="eyebrow">Project Two</p>
+          <p class="eyebrow">Web page</p>
           <h3>Web Page</h3>
           <p>
-            Your current web page is linked here without editing it. If you want
-            later, I can make a second new design page beside it too.
+            Open the web page you created in the Web folder.<br />
+            It's a great way to see your design and coding skills come together
+            in a stylish page you built!<br />
+            This a type of virus page but in a good way, because this is only
+            apperance of the original virus You are an idoit virus<br />
           </p>
+          <p class="warning">
+            (Attention: Lower the volume and brightness before opening the Web
+            Page, because it has some bright colors and sounds.)
+          </p>
+
           <div class="button-row">
-            <a class="button button-primary" href="./Web 1/Web.html">Visit Page</a>
+            <a class="button button-primary" href="./Web 1/Web.html"
+              >Visit Page</a
+            >
           </div>
         </article>
 
@@ -366,9 +95,24 @@
             A few good external links to help with HTML, CSS, and JavaScript.
           </p>
           <div class="mini-links">
-            <a href="https://developer.mozilla.org/" target="_blank" rel="noopener noreferrer">MDN Docs</a>
-            <a href="https://css-tricks.com/" target="_blank" rel="noopener noreferrer">CSS-Tricks</a>
-            <a href="https://www.w3schools.com/" target="_blank" rel="noopener noreferrer">W3Schools</a>
+            <a
+              href="https://developer.mozilla.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >MDN Docs</a
+            >
+            <a
+              href="https://css-tricks.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >CSS-Tricks</a
+            >
+            <a
+              href="https://www.w3schools.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >W3Schools</a
+            >
           </div>
         </article>
       </section>
@@ -412,4 +156,3 @@
     </main>
   </body>
 </html>
-
