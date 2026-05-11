@@ -1,41 +1,94 @@
 # My First Project
 
-A beginner-friendly practice repository with small projects in HTML, JavaScript, Python, and PowerShell.
+A beginner-friendly practice repository with small projects in HTML, CSS, JavaScript, Python, and PowerShell.
+
+## Live Website
+
+This repository is hosted with GitHub Pages:
+
+[https://error-cracker-1.github.io/My-First-Project/](https://error-cracker-1.github.io/My-First-Project/)
+
+The hosted site is served from the `docs` folder and starts at `docs/index.html`.
 
 ## Overview
 
-This repo contains a mix of learning exercises and small experiments. The main project is a browser-based Pong game, with additional web, Python, and PowerShell practice files.
+This repo contains a mix of learning exercises and small experiments. The current GitHub Pages site provides one landing page with links to the browser projects, while the repository also keeps the original project folders and beginner scripting practice files.
 
-## Projects
+## Current Structure
 
-| Folder | Main File | Description |
-| --- | --- | --- |
-| `Game Pong` | `Game 1.html` | A browser Pong game with a styled UI, scoreboard, and game controls. |
-| `Web 1` | `Web.html` | A simple animated web experiment built with HTML, CSS, and JavaScript. |
-| `Python` | Multiple `.py` files | Beginner Python scripts for arithmetic and basic logic practice. |
-| `Powershell` | Multiple `.ps1` files | Basic PowerShell practice scripts. |
+| Path | Description |
+| --- | --- |
+| `docs/index.html` | Main GitHub Pages landing page with links to the hosted projects. |
+| `docs/styles.css` | Stylesheet for the GitHub Pages landing page. |
+| `docs/Game Pong/Game 1.html` | Hosted copy of the Pong game. |
+| `docs/Web 1/Web.html` | Hosted copy of the Web 1 page. |
+| `docs/Web 1/styles.css` | Stylesheet for the hosted Web 1 page. |
+| `Game Pong/Game 1.html` | Original browser-based Pong game file. |
+| `Web 1/Web.html` | Original Web 1 HTML experiment. |
+| `Python/subtractor.py` | Simple subtractor script. |
+| `Python/To Add Three Numbers.py` | Adds three numbers entered by the user. |
+| `Python/To Do All Maths Calculations.py` | Basic calculator with add, subtract, multiply, and divide functions. |
+| `Python/To Find Area of Rectangle.py` | Rectangle area calculator. |
+| `Python/To Find Even And Odd Numbers.py` | Even/odd number checker. |
+| `Python/To Find Perimeter Of Rectangle.py` | Rectangle perimeter calculator. |
+| `Python/To Multiply Three Numbers.py` | Multiplies three input numbers. |
+| `Powershell/Test.ps1` | Age-based greeting script. |
+| `Powershell/Test 1.ps1` | Backup script with a number guessing game. |
+| `Powershell/Test 2.ps1` | System information dashboard. |
 
-## Featured Project
+## Featured Projects
+
+### GitHub Pages Landing Page
+
+Path: `docs/index.html`
+
+The landing page acts as the public entry point for the repository. It includes quick links to the Pong game, the Web 1 page, and useful learning resources for HTML, CSS, and JavaScript.
 
 ### Pong Game
 
-Path: `Game Pong/Game 1.html`
+Paths:
+
+- `docs/Game Pong/Game 1.html`
+- `Game Pong/Game 1.html`
 
 Highlights:
+
 - Runs directly in the browser
-- Includes a scoreboard and game canvas
-- Uses HTML, CSS, and JavaScript in a single file
-- Good starting point for learning simple game logic
+- Includes a scoreboard and canvas-based gameplay
+- Includes difficulty/game controls and sound options
+- Uses HTML, CSS, and JavaScript
+
+### Web 1 Page
+
+Paths:
+
+- `docs/Web 1/Web.html`
+- `Web 1/Web.html`
+
+Highlights:
+
+- Browser-based HTML, CSS, and JavaScript experiment
+- Uses a separated CSS file in the hosted `docs/Web 1` version
+- Includes visual effects, sound, and on-page controls
 
 ## Getting Started
 
-### Run the HTML projects
-Open either file in your browser:
+### Open the Hosted Site
 
+Visit:
+
+[https://error-cracker-1.github.io/My-First-Project/](https://error-cracker-1.github.io/My-First-Project/)
+
+### Run the HTML Projects Locally
+
+Open these files in your browser:
+
+- `docs/index.html`
 - `Game Pong/Game 1.html`
 - `Web 1/Web.html`
 
-### Run a Python script
+### Run a Python Script
+
 From the project root:
 
 ```powershell
@@ -44,33 +97,60 @@ python "Python\To Do All Maths Calculations.py"
 
 You can replace that filename with any other script in the `Python` folder.
 
-### Run a PowerShell script
+### Run a PowerShell Script
+
 From the project root:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File "Powershell\Test.ps1"
 ```
 
+## Python Practice Scripts
+
+- `Python/subtractor.py` — subtracts two numbers from user input.
+- `Python/To Add Three Numbers.py` — adds three numbers entered by the user.
+- `Python/To Do All Maths Calculations.py` — basic calculator that adds, subtracts, multiplies, and divides two numbers.
+- `Python/To Find Area of Rectangle.py` — calculates the area of a rectangle.
+- `Python/To Find Even And Odd Numbers.py` — checks whether a number is even or odd.
+- `Python/To Find Perimeter Of Rectangle.py` — calculates the perimeter of a rectangle.
+- `Python/To Multiply Three Numbers.py` — multiplies three numbers entered by the user.
+
+## PowerShell Practice Scripts
+
+- `Powershell/Test.ps1` — prompts for name and age, then indicates if the user is an adult or minor.
+- `Powershell/Test 1.ps1` — copies a folder to a backup location and includes a small number guessing game.
+- `Powershell/Test 2.ps1` — displays system information, disk usage, network adapter details, BIOS version, and recent Windows updates.
+
+## Recent Updates
+
+- Added a `docs` folder for GitHub Pages hosting.
+- Added `docs/index.html` as a clean landing page for project links.
+- Separated CSS for the hosted pages where needed.
+- Added distinct favicons to website pages.
+- Kept original project folders alongside the hosted `docs` copies.
+
 ## Learning Focus
 
 This repository is useful for practicing:
 
-- basic programming concepts
-- simple browser-based projects
+- HTML, CSS, and JavaScript
+- browser-based project structure
 - beginner game development
 - Python fundamentals
 - PowerShell scripting
+- publishing a static site with GitHub Pages
 
 ## Repository Notes
 
-- This is a practice repo, so some files are small exercises rather than complete applications.
-- The Pong game is the most substantial project in the repository.
+- This is a practice repository, so some files are small exercises rather than complete applications.
+- The `docs` folder is the public GitHub Pages version of the site.
+- The Pong game is the most substantial browser project in the repository.
 
 ## Future Improvements
 
 Possible next steps for this repo:
 
-- add screenshots or GIFs for the Pong game
-- split larger single-file projects into separate HTML, CSS, and JS files
-- add more project descriptions for each Python and PowerShell script
-- include screenshots in this README for a better GitHub presentation
+- add screenshots or GIFs for the Pong game and website pages
+- keep the original and `docs` versions in sync
+- add short descriptions for each Python and PowerShell script
+- move more shared styling into separate CSS files
