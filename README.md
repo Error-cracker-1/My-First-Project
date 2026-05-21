@@ -1,6 +1,6 @@
 # My First Project
 
-A beginner-friendly practice repository with small projects in HTML, CSS, JavaScript, Python, and PowerShell.
+A beginner-friendly practice repository with small projects in HTML, CSS, JavaScript, Python, PowerShell, and Jupyter Notebook.
 
 ## Live Website
 
@@ -32,6 +32,8 @@ This repo contains a mix of learning exercises and small experiments. The curren
 | `Python/To Find Even And Odd Numbers.py` | Even/odd number checker. |
 | `Python/To Find Perimeter Of Rectangle.py` | Rectangle perimeter calculator. |
 | `Python/To Multiply Three Numbers.py` | Multiplies three input numbers. |
+| `Jupyter/Test.ipynb` | Jupyter notebook with Tkinter practice apps for launching the site, calculating square roots, and guessing numbers. |
+| `Requirements.txt` | Python and Jupyter dependencies for running the notebook and scripts. |
 | `Powershell/Test.ps1` | Age-based greeting script. |
 | `Powershell/Test 1.ps1` | Backup script with a number guessing game. |
 | `Powershell/Test 2.ps1` | System information dashboard. |
@@ -71,6 +73,17 @@ Highlights:
 - Uses a separated CSS file in the hosted `docs/Web 1` version
 - Includes visual effects, sound, and on-page controls
 
+### Jupyter Notebook Practice
+
+Path: `Jupyter/Test.ipynb`
+
+Highlights:
+
+- Includes small Tkinter GUI examples
+- Opens the hosted project website from a desktop app button
+- Demonstrates a square-root calculator with input validation
+- Includes a simple number guessing game
+
 ## Getting Started
 
 ### Open the Hosted Site
@@ -97,6 +110,17 @@ python "Python\To Do All Maths Calculations.py"
 
 You can replace that filename with any other script in the `Python` folder.
 
+### Run the Jupyter Notebook
+
+Install the Python dependencies, then start Jupyter:
+
+```powershell
+pip install -r Requirements.txt
+jupyter notebook
+```
+
+Open `Jupyter/Test.ipynb` from the Jupyter file browser.
+
 ### Run a PowerShell Script
 
 From the project root:
@@ -121,8 +145,14 @@ powershell -ExecutionPolicy Bypass -File "Powershell\Test.ps1"
 - `Powershell/Test 1.ps1` — copies a folder to a backup location and includes a small number guessing game.
 - `Powershell/Test 2.ps1` — displays system information, disk usage, network adapter details, BIOS version, and recent Windows updates.
 
+## Jupyter Practice Notebook
+
+- `Jupyter/Test.ipynb` — contains Tkinter examples for a welcome app, a square-root calculator, and a number guessing game.
+
 ## Recent Updates
 
+- Added `Jupyter/Test.ipynb` with Tkinter practice apps.
+- Expanded `Requirements.txt` with Jupyter Notebook, JupyterLab, widgets, and server dependencies.
 - Added a `docs` folder for GitHub Pages hosting.
 - Added `docs/index.html` as a clean landing page for project links.
 - Separated CSS for the hosted pages where needed.
@@ -137,6 +167,7 @@ This repository is useful for practicing:
 - browser-based project structure
 - beginner game development
 - Python fundamentals
+- Jupyter Notebook experiments
 - PowerShell scripting
 - publishing a static site with GitHub Pages
 
@@ -145,6 +176,7 @@ This repository is useful for practicing:
 - This is a practice repository, so some files are small exercises rather than complete applications.
 - The `docs` folder is the public GitHub Pages version of the site.
 - The Pong game is the most substantial browser project in the repository.
+- The Jupyter notebook uses Tkinter, so GUI examples should be run on a desktop Python environment.
 
 ## Future Improvements
 
@@ -153,4 +185,5 @@ Possible next steps for this repo:
 - add screenshots or GIFs for the Pong game and website pages
 - keep the original and `docs` versions in sync
 - add short descriptions for each Python and PowerShell script
+- add more markdown notes inside the Jupyter notebook
 - move more shared styling into separate CSS files
