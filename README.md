@@ -26,12 +26,14 @@ This repo contains a mix of learning exercises and small experiments. The curren
 | `Game Pong/Game 1.html` | Original browser-based Pong game file. |
 | `Web 1/Web.html` | Original Web 1 HTML experiment. |
 | `Python/subtractor.py` | Simple subtractor script. |
+| `Python/MultiFunctional Calculator.py` | Tkinter calculator with arithmetic, powers, and square roots. |
 | `Python/To Add Three Numbers.py` | Adds three numbers entered by the user. |
 | `Python/To Do All Maths Calculations.py` | Basic calculator with add, subtract, multiply, and divide functions. |
 | `Python/To Find Area of Rectangle.py` | Rectangle area calculator. |
 | `Python/To Find Even And Odd Numbers.py` | Even/odd number checker. |
 | `Python/To Find Perimeter Of Rectangle.py` | Rectangle perimeter calculator. |
 | `Python/To Multiply Three Numbers.py` | Multiplies three input numbers. |
+| `Jupyter/Calculator.ipynb` | Jupyter notebook version of the Tkinter multifunction calculator. |
 | `Jupyter/Test.ipynb` | Jupyter notebook with Tkinter practice apps for launching the site, calculating square roots, and guessing numbers. |
 | `Requirements.txt` | Python and Jupyter dependencies for running the notebook and scripts. |
 | `Powershell/Test.ps1` | Age-based greeting script. |
@@ -83,6 +85,20 @@ Highlights:
 - Opens the hosted project website from a desktop app button
 - Demonstrates a square-root calculator with input validation
 - Includes a simple number guessing game
+- Uses message boxes for GUI feedback in the welcome and guessing examples
+
+### Multifunction Calculator
+
+Paths:
+
+- `Python/MultiFunctional Calculator.py`
+- `Jupyter/Calculator.ipynb`
+
+Highlights:
+
+- Tkinter desktop calculator interface
+- Supports addition, subtraction, multiplication, division, powers, and square roots
+- Includes validation for invalid numbers, division by zero, and negative square roots
 
 ## Getting Started
 
@@ -110,6 +126,12 @@ python "Python\To Do All Maths Calculations.py"
 
 You can replace that filename with any other script in the `Python` folder.
 
+To run the Tkinter multifunction calculator:
+
+```powershell
+python "Python\MultiFunctional Calculator.py"
+```
+
 ### Run the Jupyter Notebook
 
 Install the Python dependencies, then start Jupyter:
@@ -132,6 +154,7 @@ powershell -ExecutionPolicy Bypass -File "Powershell\Test.ps1"
 ## Python Practice Scripts
 
 - `Python/subtractor.py` — subtracts two numbers from user input.
+- `Python/MultiFunctional Calculator.py` — Tkinter calculator for arithmetic operations, powers, and square roots.
 - `Python/To Add Three Numbers.py` — adds three numbers entered by the user.
 - `Python/To Do All Maths Calculations.py` — basic calculator that adds, subtracts, multiplies, and divides two numbers.
 - `Python/To Find Area of Rectangle.py` — calculates the area of a rectangle.
@@ -147,10 +170,13 @@ powershell -ExecutionPolicy Bypass -File "Powershell\Test.ps1"
 
 ## Jupyter Practice Notebook
 
+- `Jupyter/Calculator.ipynb` — contains a Tkinter multifunction calculator with arithmetic, power, and square-root operations.
 - `Jupyter/Test.ipynb` — contains Tkinter examples for a welcome app, a square-root calculator, and a number guessing game.
 
 ## Recent Updates
 
+- Added `Python/MultiFunctional Calculator.py` and `Jupyter/Calculator.ipynb` with a Tkinter multifunction calculator.
+- Updated `Jupyter/Test.ipynb` to show GUI message boxes for welcome and guessing-game feedback.
 - Added `Jupyter/Test.ipynb` with Tkinter practice apps.
 - Expanded `Requirements.txt` with Jupyter Notebook, JupyterLab, widgets, and server dependencies.
 - Added a `docs` folder for GitHub Pages hosting.
