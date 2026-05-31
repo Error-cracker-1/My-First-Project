@@ -1,5 +1,6 @@
 import tkinter as tk
 import math
+import webbrowser
 from tkinter import messagebox
 
 def add():
@@ -56,10 +57,13 @@ def square_root():
         messagebox.showinfo("Result", f"The square root of {num} is: {result}")
     except ValueError:
         messagebox.showerror("Error", "Please enter a valid number.")
+def open_github():
+    webbrowser.open("https://github.com/Error-cracker-1/My-First-Project")
+
 
 window = tk.Tk()
 window.title("MultiFunctional Calculator")
-window.geometry("350x380")
+window.geometry("350x400")
 label1 = tk.Label(window, text="Number 1:")
 label1.pack(pady=5)
 entry1 = tk.Entry(window)
@@ -80,4 +84,6 @@ button_exponentiate = tk.Button(window, text="Power (aⁿ)", command=exponentiat
 button_exponentiate.pack(pady=7)
 button_square_root = tk.Button(window, text="Square Root (√)", command=square_root)
 button_square_root.pack(pady=7)
+button_github = tk.Button(window, text="Support", command=open_github)
+button_github.pack(pady=5)
 window.mainloop()
