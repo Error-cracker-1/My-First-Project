@@ -1,6 +1,8 @@
-# My First Project
+# My First Project: Beginner Coding Projects
 
-A beginner-friendly practice repository with small projects in HTML, CSS, JavaScript, Python, PowerShell, and Jupyter Notebook.
+A beginner-friendly practice repository for learning HTML, CSS, JavaScript, Python, PowerShell, and Jupyter Notebook through small, runnable projects.
+
+The repository includes a published GitHub Pages site, browser projects, Python practice scripts, PowerShell utilities, and Tkinter-based Jupyter notebooks. The current featured notebook is a multifunction scientific calculator with a graphical interface, input validation, arithmetic operations, powers, square roots, clear controls, and a support link to the project repository.
 
 ## Live Website
 
@@ -33,7 +35,7 @@ This repo contains a mix of learning exercises and small experiments. The curren
 | `Python/To Find Even And Odd Numbers.py` | Even/odd number checker. |
 | `Python/To Find Perimeter Of Rectangle.py` | Rectangle perimeter calculator. |
 | `Python/To Multiply Three Numbers.py` | Multiplies three input numbers. |
-| `Jupyter/Calculator.ipynb` | Jupyter notebook version of the Tkinter multifunction calculator. |
+| `Jupyter/Calculator.ipynb` | Jupyter notebook version of the Tkinter multifunction scientific calculator with a title, usage notes, styled controls, and validation. |
 | `Jupyter/Test.ipynb` | Jupyter notebook with Tkinter practice apps for launching the site, calculating square roots, and guessing numbers. |
 | `Requirements.txt` | Python and Jupyter dependencies for running the notebook and scripts. |
 | `Powershell/Test.ps1` | Age-based greeting script. |
@@ -99,6 +101,7 @@ Highlights:
 - Tkinter desktop calculator interface
 - Supports addition, subtraction, multiplication, division, powers, and square roots
 - Includes validation for invalid numbers, division by zero, and negative square roots
+- The notebook version includes a clear title, usage description, feature list, input notes, styled operation buttons, and a clear button
 
 ## Getting Started
 
@@ -141,7 +144,7 @@ pip install -r Requirements.txt
 jupyter notebook
 ```
 
-Open `Jupyter/Test.ipynb` from the Jupyter file browser.
+Open `Jupyter/Calculator.ipynb` for the multifunction calculator or `Jupyter/Test.ipynb` for the practice apps.
 
 ### Run a PowerShell Script
 
@@ -175,6 +178,9 @@ powershell -ExecutionPolicy Bypass -File "Powershell\Test.ps1"
 
 ## Recent Updates
 
+- Added a title and detailed description to `Jupyter/Calculator.ipynb`.
+- Improved the notebook calculator layout with styled controls, a clear button, and usage notes.
+- Updated `README.md` with a stronger project description and calculator documentation.
 - Added `Python/MultiFunctional Calculator.py` and `Jupyter/Calculator.ipynb` with a Tkinter multifunction calculator.
 - Updated `Jupyter/Test.ipynb` to show GUI message boxes for welcome and guessing-game feedback.
 - Added `Jupyter/Test.ipynb` with Tkinter practice apps.
