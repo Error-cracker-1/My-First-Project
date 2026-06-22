@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
 
-# Replace with your actual GitHub Pages URL
-Sitemap: https://error-cracker-1.github.io/My-First-Project/
+# Points to your actual sitemap file
+Sitemap: https://error-cracker-1.github.io/My-First-Project/sitemap.xml
