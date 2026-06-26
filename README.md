@@ -20,27 +20,30 @@ This repo contains a mix of learning exercises and small experiments. The curren
 
 | Path | Description |
 | --- | --- |
-| `docs/index.html` | Main GitHub Pages landing page with links to the hosted projects. |
-| `docs/styles.css` | Stylesheet for the GitHub Pages landing page. |
 | `docs/Game Pong/Game 1.html` | Hosted copy of the Pong game. |
-| `docs/Web 1/Web.html` | Hosted copy of the Web 1 page. |
+| `docs/google83549bbb7ae16ebb.html` | Practice script or asset for google83549bbb7ae16ebb. |
+| `docs/index.html` | Main GitHub Pages landing page with links to the hosted projects. |
+| `docs/robots.txt` | Practice script or asset for robots. |
+| `docs/sitemap.xml` | Practice script or asset for sitemap. |
+| `docs/styles.css` | Stylesheet for the GitHub Pages landing page. |
 | `docs/Web 1/styles.css` | Stylesheet for the hosted Web 1 page. |
+| `docs/Web 1/Web.html` | Hosted copy of the Web 1 page. |
 | `Game Pong/Game 1.html` | Original browser-based Pong game file. |
-| `Web 1/Web.html` | Original Web 1 HTML experiment. |
-| `Python/subtractor.py` | Simple subtractor script. |
+| `Jupyter/Calculator.ipynb` | Jupyter notebook containing both the classic multifunction scientific calculator and the modern themed, scrollable calculator with hover effects and theme toggling. |
+| `Jupyter/Test.ipynb` | File not found. |
+| `Powershell/Test 1.ps1` | Backup script with a number guessing game. |
+| `Powershell/Test 2.ps1` | System information dashboard. |
+| `Powershell/Test.ps1` | Age-based greeting script. |
 | `Python/MultiFunctional Calculator.py` | Tkinter calculator with arithmetic, powers, and square roots. |
+| `Python/subtractor.py` | Simple subtractor script. |
 | `Python/To Add Three Numbers.py` | Adds three numbers entered by the user. |
 | `Python/To Do All Maths Calculations.py` | Basic calculator with add, subtract, multiply, and divide functions. |
 | `Python/To Find Area of Rectangle.py` | Rectangle area calculator. |
 | `Python/To Find Even And Odd Numbers.py` | Even/odd number checker. |
 | `Python/To Find Perimeter Of Rectangle.py` | Rectangle perimeter calculator. |
 | `Python/To Multiply Three Numbers.py` | Multiplies three input numbers. |
-| `Jupyter/Calculator.ipynb` | Jupyter notebook version of the Tkinter multifunction scientific calculator with a title, usage notes, styled controls, and validation. |
-| `Jupyter/Test.ipynb` | Jupyter notebook with Tkinter practice apps for launching the site, calculating square roots, and guessing numbers. |
 | `Requirements.txt` | Python and Jupyter dependencies for running the notebook and scripts. |
-| `Powershell/Test.ps1` | Age-based greeting script. |
-| `Powershell/Test 1.ps1` | Backup script with a number guessing game. |
-| `Powershell/Test 2.ps1` | System information dashboard. |
+| `Web 1/Web.html` | Original Web 1 HTML experiment. |
 
 ## Featured Projects
 
@@ -77,19 +80,9 @@ Highlights:
 - Uses a separated CSS file in the hosted `docs/Web 1` version
 - Includes visual effects, sound, and on-page controls
 
-### Jupyter Notebook Practice
 
-Path: `Jupyter/Test.ipynb`
 
-Highlights:
-
-- Includes small Tkinter GUI examples
-- Opens the hosted project website from a desktop app button
-- Demonstrates a square-root calculator with input validation
-- Includes a simple number guessing game
-- Uses message boxes for GUI feedback in the welcome and guessing examples
-
-### Multifunction Calculator
+### Multifunction & Modern Scrollable Calculators
 
 Paths:
 
@@ -98,10 +91,9 @@ Paths:
 
 Highlights:
 
-- Tkinter desktop calculator interface
-- Supports addition, subtraction, multiplication, division, powers, and square roots
-- Includes validation for invalid numbers, division by zero, and negative square roots
-- The notebook version includes a clear title, usage description, feature list, input notes, styled operation buttons, and a clear button
+- **Classic Scientific Calculator**: Supports addition, subtraction, multiplication, division, powers, and square roots with full validation.
+- **Modern Scrollable Calculator**: Features custom deep slate dark and nord light themes, dynamic theme toggling, hover effects, and a canvas-based scrollable layout.
+- The notebook version contains both calculator implementations, each with clear usage notes, styled controls, and error handling.
 
 ## Getting Started
 
@@ -144,7 +136,7 @@ pip install -r Requirements.txt
 jupyter notebook
 ```
 
-Open `Jupyter/Calculator.ipynb` for the multifunction calculator or `Jupyter/Test.ipynb` for the practice apps.
+Open `Jupyter/Calculator.ipynb` to run the classic scientific calculator or the modern themed scrollable calculator.
 
 ### Run a PowerShell Script
 
@@ -156,28 +148,31 @@ powershell -ExecutionPolicy Bypass -File "Powershell\Test.ps1"
 
 ## Python Practice Scripts
 
-- `Python/subtractor.py` — subtracts two numbers from user input.
-- `Python/MultiFunctional Calculator.py` — Tkinter calculator for arithmetic operations, powers, and square roots.
-- `Python/To Add Three Numbers.py` — adds three numbers entered by the user.
-- `Python/To Do All Maths Calculations.py` — basic calculator that adds, subtracts, multiplies, and divides two numbers.
-- `Python/To Find Area of Rectangle.py` — calculates the area of a rectangle.
-- `Python/To Find Even And Odd Numbers.py` — checks whether a number is even or odd.
-- `Python/To Find Perimeter Of Rectangle.py` — calculates the perimeter of a rectangle.
-- `Python/To Multiply Three Numbers.py` — multiplies three numbers entered by the user.
+- `Python/MultiFunctional Calculator.py` — Tkinter calculator with arithmetic, powers, and square roots.
+- `Python/subtractor.py` — Simple subtractor script.
+- `Python/To Add Three Numbers.py` — Adds three numbers entered by the user.
+- `Python/To Do All Maths Calculations.py` — Basic calculator with add, subtract, multiply, and divide functions.
+- `Python/To Find Area of Rectangle.py` — Rectangle area calculator.
+- `Python/To Find Even And Odd Numbers.py` — Even/odd number checker.
+- `Python/To Find Perimeter Of Rectangle.py` — Rectangle perimeter calculator.
+- `Python/To Multiply Three Numbers.py` — Multiplies three input numbers.
 
 ## PowerShell Practice Scripts
 
-- `Powershell/Test.ps1` — prompts for name and age, then indicates if the user is an adult or minor.
-- `Powershell/Test 1.ps1` — copies a folder to a backup location and includes a small number guessing game.
-- `Powershell/Test 2.ps1` — displays system information, disk usage, network adapter details, BIOS version, and recent Windows updates.
+- `Powershell/Test 1.ps1` — Backup script with a number guessing game.
+- `Powershell/Test 2.ps1` — System information dashboard.
+- `Powershell/Test.ps1` — Age-based greeting script.
 
-## Jupyter Practice Notebook
+## Jupyter Practice Notebooks
 
-- `Jupyter/Calculator.ipynb` — contains a Tkinter multifunction calculator with arithmetic, power, and square-root operations.
-- `Jupyter/Test.ipynb` — contains Tkinter examples for a welcome app, a square-root calculator, and a number guessing game.
+- `Jupyter/Calculator.ipynb` — Jupyter notebook containing both the classic multifunction scientific calculator and the modern themed, scrollable calculator with hover effects and theme toggling.
+- `Jupyter/Test.ipynb` — File not found.
 
 ## Recent Updates
 
+- Deleted `Jupyter/Test.ipynb`.
+- Added the Modern Scrollable Calculator cell to `Jupyter/Calculator.ipynb` with custom dark/light themes, dynamic theme switching, and scrollbar support.
+- Updated package dependencies in `Requirements.txt`.
 - Added a title and detailed description to `Jupyter/Calculator.ipynb`.
 - Improved the notebook calculator layout with styled controls, a clear button, and usage notes.
 - Updated `README.md` with a stronger project description and calculator documentation.
