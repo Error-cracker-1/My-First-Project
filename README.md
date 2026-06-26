@@ -30,7 +30,6 @@ This repo contains a mix of learning exercises and small experiments. The curren
 | `docs/Web 1/Web.html` | Hosted copy of the Web 1 page. |
 | `Game Pong/Game 1.html` | Original browser-based Pong game file. |
 | `Jupyter/Calculator.ipynb` | Jupyter notebook containing both the classic multifunction scientific calculator and the modern themed, scrollable calculator with hover effects and theme toggling. |
-| `Jupyter/Test.ipynb` | File not found. |
 | `Powershell/Test 1.ps1` | Backup script with a number guessing game. |
 | `Powershell/Test 2.ps1` | System information dashboard. |
 | `Powershell/Test.ps1` | Age-based greeting script. |
@@ -166,7 +165,6 @@ powershell -ExecutionPolicy Bypass -File "Powershell\Test.ps1"
 ## Jupyter Practice Notebooks
 
 - `Jupyter/Calculator.ipynb` — Jupyter notebook containing both the classic multifunction scientific calculator and the modern themed, scrollable calculator with hover effects and theme toggling.
-- `Jupyter/Test.ipynb` — File not found.
 
 ## Recent Updates
 
