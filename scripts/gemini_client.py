@@ -3,9 +3,13 @@ Gemini client for the Daily AI Review project.
 """
 
 import os
+import time
 from google import genai
 
 MODEL = "gemini-2.5-flash"
+
+MAX_RETRIES = 5
+INITIAL_DELAY = 25
 
 
 class GeminiClient:
@@ -19,9 +23,54 @@ class GeminiClient:
 
         self.client = genai.Client(api_key=api_key)
 
-    def review_file(self, filename: str, content: str) -> str:
+    def _generate(self, prompt: str):
         """
-        Send a single file to Gemini for review and return the updated file.
+        Generate content with automatic retry if the
+        Gemini free-tier rate limit is exceeded.
+        """
+
+        delay = INITIAL_DELAY
+
+        for attempt in range(MAX_RETRIES):
+            try:
+                return self.client.models.generate_content(
+                    model=MODEL,
+                    contents=prompt,
+                )
+
+            except Exception as e:
+                error = str(e)
+
+                if (
+                    "429" in error
+                    or "RESOURCE_EXHAUSTED" in error
+                ):
+                    print()
+                    print("=" * 60)
+                    print("Gemini rate limit reached.")
+                    print(f"Retry {attempt + 1}/{MAX_RETRIES}")
+                    print(f"Waiting {delay} seconds...")
+                    print("=" * 60)
+                    print()
+
+                    time.sleep(delay)
+
+                    delay *= 2
+                    continue
+
+                raise
+
+        raise RuntimeError(
+            "Gemini API quota exceeded after multiple retries."
+        )
+
+    def review_file(
+        self,
+        filename: str,
+        content: str,
+    ) -> str:
+        """
+        Review one file.
         """
 
         prompt = f"""
@@ -50,10 +99,7 @@ File:
 {content}
 """
 
-        response = self.client.models.generate_content(
-            model=MODEL,
-            contents=prompt,
-        )
+        response = self._generate(prompt)
 
         text = getattr(response, "text", None)
 
@@ -62,27 +108,27 @@ File:
 
         text = text.strip()
 
-        # Remove accidental markdown code fences
         if text.startswith("```"):
             lines = text.splitlines()
 
-            if lines:
-                lines = lines[1:]
+            lines = lines[1:]
 
             if lines and lines[-1].strip() == "```":
                 lines = lines[:-1]
 
             text = "\n".join(lines).strip()
 
-        # Remove accidental language tag
         if text.lower().startswith("python\n"):
             text = text[7:]
 
-        return text if text else content
+        return text or content
 
-    def generate_commit_message(self, changed_files: list[str]) -> tuple[str, str]:
+    def generate_commit_message(
+        self,
+        changed_files: list[str],
+    ) -> tuple[str, str]:
         """
-        Generate a Git commit title and body.
+        Generate a professional Git commit.
         """
 
         prompt = f"""
@@ -92,7 +138,7 @@ Changed files:
 
 {chr(10).join(changed_files)}
 
-Return exactly in this format:
+Return exactly:
 
 TITLE:
 <one line>
@@ -103,17 +149,14 @@ BODY:
 Do not use markdown.
 """
 
-        response = self.client.models.generate_content(
-            model=MODEL,
-            contents=prompt,
-        )
+        response = self._generate(prompt)
 
         text = getattr(response, "text", None)
 
         if not text:
             return (
                 "AI repository review",
-                "Automated repository review completed."
+                "Automated repository review completed.",
             )
 
         text = text.strip()
@@ -124,8 +167,16 @@ Do not use markdown.
         if "TITLE:" in text and "BODY:" in text:
             try:
                 title_part, body_part = text.split("BODY:", 1)
-                title = title_part.replace("TITLE:", "").strip()
+
+                title = (
+                    title_part.replace(
+                        "TITLE:",
+                        "",
+                    ).strip()
+                )
+
                 body = body_part.strip()
+
             except Exception:
                 pass
 

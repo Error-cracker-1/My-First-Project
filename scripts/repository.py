@@ -5,10 +5,8 @@ SUPPORTED_EXTENSIONS = {
     ".py",
     ".html",
     ".css",
-    ".js",
     ".md",
     ".txt",
-    ".xml",
     ".ps1",
 }
 

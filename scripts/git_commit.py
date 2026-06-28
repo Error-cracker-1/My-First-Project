@@ -13,7 +13,7 @@ class GitCommitManager:
 
     def has_changes(self) -> bool:
         """
-        Return True if tracked files have changed.
+        Return True if the repository contains changes.
         """
         result = subprocess.run(
             ["git", "status", "--porcelain"],
@@ -26,7 +26,7 @@ class GitCommitManager:
 
     def changed_files(self) -> list[str]:
         """
-        Return a list of modified tracked files.
+        Return a list of changed tracked files.
         """
         result = subprocess.run(
             ["git", "diff", "--name-only"],
@@ -43,7 +43,7 @@ class GitCommitManager:
 
     def commit(self) -> bool:
         """
-        Create a commit if changes exist.
+        Create an AI-generated Git commit.
         """
 
         if not self.has_changes():
@@ -59,7 +59,7 @@ class GitCommitManager:
         title, body = self.client.generate_commit_message(files)
 
         subprocess.run(
-            ["git", "add", "-u"],
+            ["git", "add", "."],
             check=True,
         )
 
@@ -76,16 +76,26 @@ class GitCommitManager:
                 check=True,
             )
 
+            print()
+            print("=" * 60)
             print("Commit created successfully.")
+            print("=" * 60)
+            print()
+
             return True
 
         except subprocess.CalledProcessError:
-            print("Git could not create a commit.")
+            print()
+            print("=" * 60)
+            print("Nothing to commit.")
+            print("=" * 60)
+            print()
+
             return False
 
     def push(self, branch: str = "feature-1") -> bool:
         """
-        Push to the specified branch.
+        Push commits to GitHub.
         """
 
         try:
@@ -99,9 +109,19 @@ class GitCommitManager:
                 check=True,
             )
 
-            print(f"Pushed to {branch}.")
+            print()
+            print("=" * 60)
+            print(f"Pushed successfully to {branch}.")
+            print("=" * 60)
+            print()
+
             return True
 
         except subprocess.CalledProcessError:
+            print()
+            print("=" * 60)
             print("Failed to push changes.")
+            print("=" * 60)
+            print()
+
             return False
