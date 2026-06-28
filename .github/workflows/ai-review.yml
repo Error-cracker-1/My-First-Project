@@ -30,7 +30,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install google-genai GitPython
 
-      - name: Run AI script
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Run AI Review
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-        run: python scripts/ai_review.py
+        run: python -m scripts.ai_review
