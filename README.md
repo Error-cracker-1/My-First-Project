@@ -2,13 +2,13 @@
 
 A beginner-friendly practice repository for learning HTML, CSS, JavaScript, Python, PowerShell, and Jupyter Notebook through small, runnable projects.
 
-The repository includes a published GitHub Pages site, browser projects, Python practice scripts, PowerShell utilities, and Tkinter-based Jupyter notebooks. The current featured notebook is a multifunction scientific calculator with a graphical interface, input validation, arithmetic operations, powers, square roots, clear controls, and a support link to the project repository.
+The repository includes a published GitHub Pages site, browser projects, Python practice scripts, PowerShell utilities, and Jupyter notebooks featuring Tkinter-based applications. The current featured notebook is a multifunction scientific calculator with a graphical interface, input validation, arithmetic operations, powers, square roots, clear controls, and a support link to the project repository.
 
 ## Live Website
 
 This repository is hosted with GitHub Pages:
 
-[https://error-cracker-1.github.io/My-First-Project/](https://error-cracker-1.github.io/My-First-Project/)
+https://error-cracker-1.github.io/My-First-Project/
 
 The hosted site is served from the `docs` folder and starts at `docs/index.html`.
 
@@ -21,15 +21,15 @@ This repo contains a mix of learning exercises and small experiments. The curren
 | Path | Description |
 | --- | --- |
 | `docs/Game Pong/Game 1.html` | Hosted copy of the Pong game. |
-| `docs/google83549bbb7ae16ebb.html` | Practice script or asset for google83549bbb7ae16ebb. |
+| `docs/google83549bbb7ae16ebb.html` | Google Site Verification file. |
 | `docs/index.html` | Main GitHub Pages landing page with links to the hosted projects. |
-| `docs/robots.txt` | Practice script or asset for robots. |
-| `docs/sitemap.xml` | Practice script or asset for sitemap. |
+| `docs/robots.txt` | Robots Exclusion Protocol (REP) file for web crawlers. |
+| `docs/sitemap.xml` | XML sitemap for search engine indexing. |
 | `docs/styles.css` | Stylesheet for the GitHub Pages landing page. |
 | `docs/Web 1/styles.css` | Stylesheet for the hosted Web 1 page. |
 | `docs/Web 1/Web.html` | Hosted copy of the Web 1 page. |
 | `Game Pong/Game 1.html` | Original browser-based Pong game file. |
-| `Jupyter/Calculator.ipynb` | Jupyter notebook containing both the classic multifunction scientific calculator and the modern themed, scrollable calculator with hover effects and theme toggling. |
+| `Jupyter/Calculator.ipynb` | Jupyter notebook featuring a multifunction scientific calculator and a modern scrollable calculator. |
 | `Powershell/Test 1.ps1` | Backup script with a number guessing game. |
 | `Powershell/Test 2.ps1` | System information dashboard. |
 | `Powershell/Test.ps1` | Age-based greeting script. |
@@ -79,14 +79,12 @@ Highlights:
 - Uses a separated CSS file in the hosted `docs/Web 1` version
 - Includes visual effects, sound, and on-page controls
 
-
-
 ### Multifunction & Modern Scrollable Calculators
 
 Paths:
 
-- `Python/MultiFunctional Calculator.py`
-- `Jupyter/Calculator.ipynb`
+- `Python/MultiFunctional Calculator.py` (Standalone Tkinter application)
+- `Jupyter/Calculator.ipynb` (Jupyter notebook)
 
 Highlights:
 
@@ -100,7 +98,7 @@ Highlights:
 
 Visit:
 
-[https://error-cracker-1.github.io/My-First-Project/](https://error-cracker-1.github.io/My-First-Project/)
+https://error-cracker-1.github.io/My-First-Project/
 
 ### Run the HTML Projects Locally
 
@@ -114,26 +112,20 @@ Open these files in your browser:
 
 From the project root:
 
-```powershell
 python "Python\To Do All Maths Calculations.py"
-```
 
 You can replace that filename with any other script in the `Python` folder.
 
 To run the Tkinter multifunction calculator:
 
-```powershell
 python "Python\MultiFunctional Calculator.py"
-```
 
 ### Run the Jupyter Notebook
 
 Install the Python dependencies, then start Jupyter:
 
-```powershell
 pip install -r Requirements.txt
 jupyter notebook
-```
 
 Open `Jupyter/Calculator.ipynb` to run the classic scientific calculator or the modern themed scrollable calculator.
 
@@ -141,9 +133,7 @@ Open `Jupyter/Calculator.ipynb` to run the classic scientific calculator or the 
 
 From the project root:
 
-```powershell
 powershell -ExecutionPolicy Bypass -File "Powershell\Test.ps1"
-```
 
 ## Python Practice Scripts
 
