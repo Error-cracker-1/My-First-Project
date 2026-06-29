@@ -4,7 +4,7 @@ import webbrowser
 from tkinter import messagebox
 
 
-# Theme values used by the app and the toggle button.
+# Constants
 THEMES = {
     "dark": {
         "background": "#1e1e1e",
@@ -20,6 +20,10 @@ THEMES = {
     },
 }
 
+GITHUB_URL = "https://github.com/Error-cracker-1/My-First-Project"
+
+
+# Global state variables
 current_theme = "dark"
 labels = []
 entries = []
@@ -32,6 +36,7 @@ def get_numbers():
 
 
 def add():
+    """Perform addition of two numbers from entry fields."""
     try:
         num1, num2 = get_numbers()
         result = num1 + num2
@@ -41,6 +46,7 @@ def add():
 
 
 def subtract():
+    """Perform subtraction of two numbers from entry fields."""
     try:
         num1, num2 = get_numbers()
         result = num1 - num2
@@ -50,6 +56,7 @@ def subtract():
 
 
 def multiply():
+    """Perform multiplication of two numbers from entry fields."""
     try:
         num1, num2 = get_numbers()
         result = num1 * num2
@@ -59,6 +66,7 @@ def multiply():
 
 
 def divide():
+    """Perform division of two numbers from entry fields, handling division by zero."""
     try:
         num1, num2 = get_numbers()
         if num2 == 0:
@@ -71,6 +79,7 @@ def divide():
 
 
 def exponentiate():
+    """Calculate the power of one number raised to another."""
     try:
         num1, num2 = get_numbers()
         result = math.pow(num1, num2)
@@ -83,6 +92,7 @@ def exponentiate():
 
 
 def square_root():
+    """Calculate the square root of the first number, handling negative input."""
     try:
         num = float(entry1.get())
         if num < 0:
@@ -98,7 +108,8 @@ def square_root():
 
 
 def open_github():
-    webbrowser.open("https://github.com/Error-cracker-1/My-First-Project")
+    """Open the project's GitHub page in a web browser."""
+    webbrowser.open(GITHUB_URL)
 
 
 def apply_theme():
@@ -129,8 +140,8 @@ def apply_theme():
             relief=tk.FLAT,
         )
 
-    next_theme = "Light" if current_theme == "dark" else "Dark"
-    theme_button.configure(text=f"Switch to {next_theme} Mode")
+    next_theme_name = "Light" if current_theme == "dark" else "Dark"
+    theme_button.configure(text=f"Switch to {next_theme_name} Mode")
 
 
 def toggle_theme():
@@ -152,17 +163,17 @@ def resize_content_frame(event):
 
 def scroll_with_mouse(event):
     """Support mouse wheel scrolling on Windows, macOS, and Linux."""
-    event_num = getattr(event, "num", None)
-
-    if event_num == 4:
+    # event.num is for Linux/macOS; event.delta is for Windows
+    if getattr(event, "num", None) == 4:  # Mouse wheel up (Linux/macOS)
         canvas.yview_scroll(-1, "units")
-    elif event_num == 5:
+    elif getattr(event, "num", None) == 5:  # Mouse wheel down (Linux/macOS)
         canvas.yview_scroll(1, "units")
-    else:
+    elif event.delta:  # Mouse wheel (Windows)
         canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
 
 def create_label(text, row):
+    """Create a themed label widget and add it to the global labels list."""
     label = tk.Label(scrollable_frame, text=text, font=("Arial", 11))
     label.grid(row=row, column=0, sticky="ew", padx=24, pady=(10, 4))
     labels.append(label)
@@ -170,6 +181,7 @@ def create_label(text, row):
 
 
 def create_entry(row):
+    """Create a themed entry widget and add it to the global entries list."""
     entry = tk.Entry(scrollable_frame, font=("Arial", 12), justify="center")
     entry.grid(row=row, column=0, sticky="ew", padx=24, pady=(0, 10), ipady=6)
     entries.append(entry)
@@ -177,6 +189,7 @@ def create_entry(row):
 
 
 def create_button(text, command, row):
+    """Create a themed button widget and add it to the global buttons list."""
     button = tk.Button(
         scrollable_frame,
         text=text,
@@ -189,13 +202,13 @@ def create_button(text, command, row):
     return button
 
 
-# Root window setup.
+# Root window setup
 window = tk.Tk()
 window.title("MultiFunctional Calculator")
 window.geometry("380x500")
 window.minsize(320, 360)
 
-# Scrollable root layout: only canvas and scrollbar are packed in root.
+# Scrollable root layout: only canvas and scrollbar are packed in root
 canvas = tk.Canvas(window, borderwidth=0)
 scrollbar = tk.Scrollbar(window, orient="vertical", command=canvas.yview)
 canvas.configure(yscrollcommand=scrollbar.set)
@@ -203,18 +216,18 @@ canvas.configure(yscrollcommand=scrollbar.set)
 canvas.pack(side="left", fill="both", expand=True)
 scrollbar.pack(side="right", fill="y")
 
-# All app content lives inside this frame, which is embedded in the canvas.
+# All app content lives inside this frame, which is embedded in the canvas
 scrollable_frame = tk.Frame(canvas)
 content_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
 scrollable_frame.columnconfigure(0, weight=1)
 
-# Input fields.
+# Input fields
 create_label("Number 1:", 0)
 entry1 = create_entry(1)
 create_label("Number 2:", 2)
 entry2 = create_entry(3)
 
-# Calculator actions.
+# Calculator actions
 create_button("Add (+)", add, 4)
 create_button("Subtract (-)", subtract, 5)
 create_button("Multiply (*)", multiply, 6)
@@ -222,16 +235,17 @@ create_button("Divide (∻)", divide, 7)
 create_button("Power (aⁿ)", exponentiate, 8)
 create_button("Square Root (√)", square_root, 9)
 
-# Utility actions.
-theme_button = create_button("", toggle_theme, 10)
+# Utility actions
+theme_button = create_button("", toggle_theme, 10)  # Text for this button is set by apply_theme
 create_button("Support", open_github, 11)
 
-# Keep scrolling behavior responsive as the window or content changes.
+# Keep scrolling behavior responsive as the window or content changes
 scrollable_frame.bind("<Configure>", update_scroll_region)
 canvas.bind("<Configure>", resize_content_frame)
-canvas.bind_all("<MouseWheel>", scroll_with_mouse)
-canvas.bind_all("<Button-4>", scroll_with_mouse)
-canvas.bind_all("<Button-5>", scroll_with_mouse)
+canvas.bind_all("<MouseWheel>", scroll_with_mouse)  # For Windows
+canvas.bind_all("<Button-4>", scroll_with_mouse)    # For Linux/macOS scroll up
+canvas.bind_all("<Button-5>", scroll_with_mouse)    # For Linux/macOS scroll down
 
+# Apply initial theme and start the application
 apply_theme()
 window.mainloop()

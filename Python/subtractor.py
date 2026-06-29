@@ -3,7 +3,7 @@ A simple Python script to perform subtraction of two numbers provided by the use
 It includes robust input handling to ensure valid numeric input.
 """
 
-def get_float_input(prompt_message):
+def get_float_input(prompt_message: str) -> float:
     """
     Prompts the user to enter a number and robustly handles non-numeric input.
 
@@ -28,11 +28,11 @@ def main():
     """
     print("Welcome to the Simple Subtractor!")
 
-    num1 = get_float_input("Enter first number: ")
-    num2 = get_float_input("Enter second number: ")
+    num1 = get_float_input("Enter the first number: ")
+    num2 = get_float_input("Enter the second number: ")
 
     result = num1 - num2
-    print(f"The result is: {result}")
+    print(f"The result of {num1} - {num2} is: {result}")
 
     input("Press Enter to Exit")
 

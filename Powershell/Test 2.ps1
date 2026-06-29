@@ -22,7 +22,7 @@ function Get-InfoSafe {
 
 # --- Dashboard Header ---
 Write-Host "=== SYSTEM INFORMATION DASHBOARD ===" -ForegroundColor Cyan
-Write-Host "" # Add an empty line for better spacing
+Write-Host # Add an empty line for better spacing
 
 # --- Retrieve Core System Information ---
 # Using Get-InfoSafe to prevent script termination if a command fails.
@@ -31,7 +31,7 @@ $cpu = Get-InfoSafe { Get-CimInstance Win32_Processor }
 $computerSystem = Get-InfoSafe { Get-CimInstance Win32_ComputerSystem }
 
 # --- Display General System Details ---
-Write-Host "Computer Name: $(Get-Content env:COMPUTERNAME)" -ForegroundColor Green
+Write-Host "Computer Name: $($env:COMPUTERNAME)" -ForegroundColor Green
 
 if ($os) {
     Write-Host "Operating System: $($os.Caption) (Build $($os.BuildNumber))" -ForegroundColor Green
@@ -52,19 +52,19 @@ else {
 
 # --- Display Memory Information ---
 if ($os -and $computerSystem) {
-    # Memory usage reported by the operating system
-    $usedMemoryGB = [math]::Round(($os.TotalVisibleMemorySize - $os.FreePhysicalMemory) / 1GB, 2)
-    $totalMemoryOSGB = [math]::Round($os.TotalVisibleMemorySize / 1GB, 2)
+    # Memory usage reported by the operating system (TotalVisibleMemorySize and FreePhysicalMemory are in KB)
+    $usedMemoryGB = [math]::Round(([double]($os.TotalVisibleMemorySize - $os.FreePhysicalMemory) / (1024 * 1024)), 2)
+    $totalMemoryOSGB = [math]::Round(([double]$os.TotalVisibleMemorySize / (1024 * 1024)), 2)
     Write-Host "Memory Usage: $usedMemoryGB GB / $totalMemoryOSGB GB" -ForegroundColor Yellow
 
-    # Total physical RAM installed in the system
+    # Total physical RAM installed in the system (TotalPhysicalMemory is in Bytes)
     $totalPhysicalRAMGB = [math]::Round($computerSystem.TotalPhysicalMemory / 1GB, 2)
     Write-Host "Installed RAM: $totalPhysicalRAMGB GB" -ForegroundColor Yellow
 }
 elseif ($os) {
      # If only OS info is available, still report memory usage
-    $usedMemoryGB = [math]::Round(($os.TotalVisibleMemorySize - $os.FreePhysicalMemory) / 1GB, 2)
-    $totalMemoryOSGB = [math]::Round($os.TotalVisibleMemorySize / 1GB, 2)
+    $usedMemoryGB = [math]::Round(([double]($os.TotalVisibleMemorySize - $os.FreePhysicalMemory) / (1024 * 1024)), 2)
+    $totalMemoryOSGB = [math]::Round(([double]$os.TotalVisibleMemorySize / (1024 * 1024)), 2)
     Write-Host "Memory Usage: $usedMemoryGB GB / $totalMemoryOSGB GB" -ForegroundColor Yellow
     Write-Host "Installed RAM: <unavailable>" -ForegroundColor DarkYellow
 }
@@ -73,7 +73,7 @@ else {
     Write-Host "Installed RAM: <unavailable>" -ForegroundColor DarkYellow
 }
 
-Write-Host "" # Add an empty line for better spacing
+Write-Host # Add an empty line for better spacing
 
 # --- Display Disk Information for Fixed Volumes ---
 Write-Host "--- Disk Information (Fixed Drives) ---" -ForegroundColor Cyan
@@ -82,14 +82,14 @@ Get-Volume | Where-Object DriveType -EQ 'Fixed' | ForEach-Object {
     Write-Host "  $($_.DriveLetter): $($_.FileSystemLabel) ($_.FileSystem): Total $([math]::Round($_.Size / 1GB, 2)) GB, Free $([math]::Round($_.SizeRemaining / 1GB, 2)) GB ($percentFree% free)" -ForegroundColor $(if ($percentFree -lt 15) { 'Red' } elseif ($percentFree -lt 30) { 'DarkYellow' } else { 'Green' })
 }
 
-Write-Host "" # Add an empty line for better spacing
+Write-Host # Add an empty line for better spacing
 
 # --- Display Network Interface Details ---
 Write-Host "--- Network Interfaces ---" -ForegroundColor Cyan
 Get-NetAdapter -Physical | ForEach-Object {
     $ipAddresses = (Get-NetIPAddress -InterfaceIndex $_.ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue).IPAddress
     $macAddress = $_.MacAddress # Get MAC address
-    $speedGBPS = [math]::Round($_.LinkSpeed / 1Gb, 2) # Convert LinkSpeed to GBps
+    $speedGBPS = [math]::Round($_.LinkSpeed / 1Gb, 2) # Convert LinkSpeed (bits) to Gbps
 
     $ipString = if ($ipAddresses) { $ipAddresses -join ', ' } else { "<none>" }
 
@@ -99,7 +99,7 @@ Get-NetAdapter -Physical | ForEach-Object {
     Write-Host "    IPv4: $ipString" -ForegroundColor Yellow
 }
 
-Write-Host "" # Add an empty line for better spacing
+Write-Host # Add an empty line for better spacing
 
 # --- Display BIOS/Firmware Information ---
 Write-Host "--- BIOS Information ---" -ForegroundColor Cyan
@@ -113,7 +113,7 @@ else {
     Write-Host "  BIOS Information: <unavailable>" -ForegroundColor DarkYellow
 }
 
-Write-Host "" # Add an empty line for better spacing
+Write-Host # Add an empty line for better spacing
 
 # --- Display Recently Installed Updates (Last 5) ---
 Write-Host "--- Recent Windows Updates ---" -ForegroundColor Cyan
@@ -127,12 +127,12 @@ else {
     Write-Host "  No recent updates found." -ForegroundColor DarkYellow
 }
 
-Write-Host "" # Add an empty line for better spacing
+Write-Host # Add an empty line for better spacing
 
 # --- Display Running Processes Count ---
 Write-Host "Running Processes: $((Get-Process).Count)" -ForegroundColor Magenta
 
 # --- Dashboard Footer ---
-Write-Host "" # Add an empty line for better spacing
-Write-Host "================================`n" -ForegroundColor Cyan
+Write-Host # Add an empty line for better spacing
+Write-Host "================================" -ForegroundColor Cyan
 Read-Host "Press Enter to exit"

@@ -2,7 +2,7 @@
 
 A beginner-friendly practice repository for learning HTML, CSS, JavaScript, Python, PowerShell, and Jupyter Notebook through small, runnable projects.
 
-The repository includes a published GitHub Pages site, browser projects, Python practice scripts, PowerShell utilities, and Jupyter notebooks featuring Tkinter-based applications. The current featured notebook is a multifunction scientific calculator with a graphical interface, input validation, arithmetic operations, powers, square roots, clear controls, and a support link to the project repository.
+This repository features a published GitHub Pages site, browser projects, Python practice scripts, PowerShell utilities, and Jupyter notebooks, including Tkinter-based applications. The current highlight is a multifunction scientific calculator, available as both a standalone Python Tkinter application and within a Jupyter notebook, offering a graphical interface, input validation, arithmetic operations, powers, square roots, clear controls, and a support link to the project repository.
 
 ## Live Website
 
@@ -14,9 +14,9 @@ The hosted site is served from the `docs` folder and starts at `docs/index.html`
 
 ## Overview
 
-This repo contains a mix of learning exercises and small experiments. The current GitHub Pages site provides one landing page with links to the browser projects, while the repository also keeps the original project folders and beginner scripting practice files.
+This repository contains a mix of learning exercises and small experiments. The current GitHub Pages site provides a landing page with links to the browser projects, while the repository also retains the original project folders and beginner scripting practice files.
 
-## Current Structure
+## Repository Contents
 
 | Path | Description |
 | --- | --- |
@@ -88,7 +88,7 @@ Paths:
 
 Highlights:
 
-- **Classic Scientific Calculator**: Supports addition, subtraction, multiplication, division, powers, and square roots with full validation.
+- **Classic Scientific Calculator**: Supports addition, subtraction, multiplication, division, powers, and square roots with full validation, including a project support link.
 - **Modern Scrollable Calculator**: Features custom deep slate dark and nord light themes, dynamic theme toggling, hover effects, and a canvas-based scrollable layout.
 - The notebook version contains both calculator implementations, each with clear usage notes, styled controls, and error handling.
 
@@ -135,44 +135,23 @@ From the project root:
 
 powershell -ExecutionPolicy Bypass -File "Powershell\Test.ps1"
 
-## Python Practice Scripts
-
-- `Python/MultiFunctional Calculator.py` — Tkinter calculator with arithmetic, powers, and square roots.
-- `Python/subtractor.py` — Simple subtractor script.
-- `Python/To Add Three Numbers.py` — Adds three numbers entered by the user.
-- `Python/To Do All Maths Calculations.py` — Basic calculator with add, subtract, multiply, and divide functions.
-- `Python/To Find Area of Rectangle.py` — Rectangle area calculator.
-- `Python/To Find Even And Odd Numbers.py` — Even/odd number checker.
-- `Python/To Find Perimeter Of Rectangle.py` — Rectangle perimeter calculator.
-- `Python/To Multiply Three Numbers.py` — Multiplies three input numbers.
-
-## PowerShell Practice Scripts
-
-- `Powershell/Test 1.ps1` — Backup script with a number guessing game.
-- `Powershell/Test 2.ps1` — System information dashboard.
-- `Powershell/Test.ps1` — Age-based greeting script.
-
-## Jupyter Practice Notebooks
-
-- `Jupyter/Calculator.ipynb` — Jupyter notebook containing both the classic multifunction scientific calculator and the modern themed, scrollable calculator with hover effects and theme toggling.
-
 ## Recent Updates
 
 - Deleted `Jupyter/Test.ipynb`.
-- Added the Modern Scrollable Calculator cell to `Jupyter/Calculator.ipynb` with custom dark/light themes, dynamic theme switching, and scrollbar support.
+- Added the Modern Scrollable Calculator cell to `Jupyter/Calculator.ipynb`, featuring custom dark/light themes, dynamic theme switching, and scrollbar support.
 - Updated package dependencies in `Requirements.txt`.
 - Added a title and detailed description to `Jupyter/Calculator.ipynb`.
 - Improved the notebook calculator layout with styled controls, a clear button, and usage notes.
 - Updated `README.md` with a stronger project description and calculator documentation.
-- Added `Python/MultiFunctional Calculator.py` and `Jupyter/Calculator.ipynb` with a Tkinter multifunction calculator.
+- Introduced `Python/MultiFunctional Calculator.py` and `Jupyter/Calculator.ipynb` with a Tkinter multifunction calculator.
 - Updated `Jupyter/Test.ipynb` to show GUI message boxes for welcome and guessing-game feedback.
-- Added `Jupyter/Test.ipynb` with Tkinter practice apps.
+- Added `Jupyter/Test.ipynb` with Tkinter practice applications.
 - Expanded `Requirements.txt` with Jupyter Notebook, JupyterLab, widgets, and server dependencies.
-- Added a `docs` folder for GitHub Pages hosting.
+- Created a `docs` folder for GitHub Pages hosting.
 - Added `docs/index.html` as a clean landing page for project links.
-- Separated CSS for the hosted pages where needed.
+- Separated CSS for hosted pages where needed.
 - Added distinct favicons to website pages.
-- Kept original project folders alongside the hosted `docs` copies.
+- Retained original project folders alongside the hosted `docs` copies.
 
 ## Learning Focus
 
@@ -188,10 +167,10 @@ This repository is useful for practicing:
 
 ## Repository Notes
 
-- This is a practice repository, so some files are small exercises rather than complete applications.
-- The `docs` folder is the public GitHub Pages version of the site.
-- The Pong game is the most substantial browser project in the repository.
-- The Jupyter notebook uses Tkinter, so GUI examples should be run on a desktop Python environment.
+- This is a practice repository; therefore, some files are small exercises rather than complete applications.
+- The `docs` folder hosts the public GitHub Pages version of the site.
+- The Pong game is currently the most substantial browser project in the repository.
+- The Jupyter notebook utilizes Tkinter, meaning GUI examples should be run in a desktop Python environment.
 
 ## Future Improvements
 
