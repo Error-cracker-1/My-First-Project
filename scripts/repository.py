@@ -1,3 +1,7 @@
+"""
+Repository helper functions for the Daily AI Review project.
+"""
+
 from pathlib import Path
 import subprocess
 
@@ -30,10 +34,12 @@ MAX_FILE_SIZE = 100_000  # characters
 
 
 def get_git_tracked_files():
-    """Return Git-tracked files that the AI should review."""
+    """
+    Return modified Git-tracked files that should be reviewed.
+    """
 
     result = subprocess.run(
-        ["git", "ls-files"],
+        ["git", "status", "--porcelain"],
         capture_output=True,
         text=True,
         check=True,
@@ -42,7 +48,12 @@ def get_git_tracked_files():
     files = []
 
     for line in result.stdout.splitlines():
-        path = Path(line)
+
+        if len(line) < 4:
+            continue
+
+        filename = line[3:].strip()
+        path = Path(filename)
 
         # Skip excluded directories
         if any(part in EXCLUDED_DIRS for part in path.parts):
@@ -60,16 +71,26 @@ def get_git_tracked_files():
         if path.name.endswith(".min.js") or path.name.endswith(".min.css"):
             continue
 
+        # Skip deleted files
+        if not path.exists():
+            continue
+
         files.append(path)
+
+    files.sort()
 
     return files
 
 
 def read_file(path: Path):
-    """Read a UTF-8 text file safely."""
+    """
+    Read a UTF-8 text file safely.
+    """
 
     try:
-        text = path.read_text(encoding="utf-8")
+        text = path.read_text(
+            encoding="utf-8",
+        )
 
         if len(text) > MAX_FILE_SIZE:
             print(f"Skipping large file: {path}")
