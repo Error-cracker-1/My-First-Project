@@ -1,12 +1,21 @@
 """
 Daily AI Review
 
-Reviews modified Git-tracked files with Gemini,
-saves improvements, updates the changelog,
-creates an AI-generated commit,
-and pushes them to feature-1.
+Reviews Git-tracked files with Gemini.
+
+Supports two review modes:
+
+    modified -> Review only modified supported files.
+    all      -> Review every supported tracked file.
+
+After reviewing files, the script:
+- Saves improvements.
+- Updates AI_CHANGELOG.md.
+- Creates an AI-generated commit.
+- Pushes the commit to feature-1.
 """
 
+import sys
 import time
 from pathlib import Path
 
@@ -30,11 +39,51 @@ def line():
     print("=" * 60)
 
 
+def get_review_mode() -> str:
+    """
+    Determine which review mode should be used.
+
+    Supported modes:
+
+        modified
+        all
+
+    Default:
+        modified
+    """
+
+    if len(sys.argv) <= 1:
+        return "modified"
+
+    mode = sys.argv[1].strip().lower()
+
+    if mode in ("modified", "all"):
+        return mode
+
+    print(f"Unknown review mode: {mode}")
+    print("Falling back to 'modified'.")
+    print()
+
+    return "modified"
+
+
 def main():
+
     start_time = time.time()
+
+    review_mode = get_review_mode()
 
     line()
     print("Daily AI Review Started")
+    line()
+
+    print(f"Review Mode : {review_mode}")
+
+    if review_mode == "all":
+        print("Repository   : Full Repository Review")
+    else:
+        print("Repository   : Modified Files Review")
+
     line()
 
     client = GeminiClient()
@@ -47,16 +96,22 @@ def main():
 
     changed_files = []
 
-    files = get_git_tracked_files()
+    files = get_git_tracked_files(review_mode)
 
     if not files:
+
         line()
-        print("No modified supported files found.")
-        print("Repository is already up to date.")
+
+        if review_mode == "all":
+            print("No supported files were found.")
+        else:
+            print("No modified supported files found.")
+            print("Repository is already up to date.")
+
         line()
         return
 
-    print(f"Files to review: {len(files)}")
+    print(f"Files discovered : {len(files)}")
 
     for file in files:
 
@@ -115,7 +170,7 @@ def main():
 
                 print("✓ No changes needed")
 
-            # Reduce chance of hitting Gemini limits.
+            # Reduce the chance of hitting Gemini free-tier limits.
             time.sleep(2)
 
         except Exception as e:
@@ -129,15 +184,17 @@ def main():
                 pass
 
             failed += 1
-        line()
+
+            line()
     print("Review Summary")
     line()
 
-    print(f"Files discovered : {len(files)}")
-    print(f"Files reviewed   : {reviewed}")
-    print(f"Files changed    : {changed}")
-    print(f"Files skipped    : {skipped}")
-    print(f"Files failed     : {failed}")
+    print(f"Review Mode       : {review_mode}")
+    print(f"Files discovered  : {len(files)}")
+    print(f"Files reviewed    : {reviewed}")
+    print(f"Files changed     : {changed}")
+    print(f"Files skipped     : {skipped}")
+    print(f"Files failed      : {failed}")
 
     if changed_files:
 
@@ -148,7 +205,7 @@ def main():
             print(f"  ✓ {file}")
 
         print()
-        print("Generating commit message...")
+        print("Generating AI commit message...")
 
         title, body = client.generate_commit_message(
             changed_files
@@ -192,13 +249,12 @@ def main():
     print("Execution Summary")
     line()
 
-    print(f"Total execution time : {elapsed:.2f} seconds")
+    print(f"Review mode        : {review_mode}")
+    print(f"Total time         : {elapsed:.2f} seconds")
 
     if reviewed:
-        print(
-            f"Success rate         : "
-            f"{((reviewed - failed) / reviewed) * 100:.1f}%"
-        )
+        success = ((reviewed - failed) / reviewed) * 100
+        print(f"Success rate       : {success:.1f}%")
 
     line()
     print("Daily AI Review Finished")
