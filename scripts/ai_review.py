@@ -19,23 +19,30 @@ import sys
 import time
 from pathlib import Path
 
+from .cache import ReviewCache
+from .config import REVIEW_DELAY
 from .repository import (
     get_git_tracked_files,
     read_file,
 )
 from .utils import (
-    file_changed,
-    save_file,
     backup_file,
-    restore_backup,
     delete_backup,
+    file_changed,
+    restore_backup,
+    save_file,
     update_changelog,
+)
+from .report import (
+    ReviewStatistics,
+    print_report,
 )
 from .gemini_client import GeminiClient
 from .git_commit import GitCommitManager
 
 
 def line():
+    """Print a separator line."""
     print("=" * 60)
 
 
@@ -44,7 +51,6 @@ def get_review_mode() -> str:
     Determine which review mode should be used.
 
     Supported modes:
-
         modified
         all
 
@@ -80,14 +86,15 @@ def main():
     print(f"Review Mode : {review_mode}")
 
     if review_mode == "all":
-        print("Repository   : Full Repository Review")
+        print("Repository  : Full Repository Review")
     else:
-        print("Repository   : Modified Files Review")
+        print("Repository  : Modified Files Review")
 
     line()
 
     client = GeminiClient()
     git = GitCommitManager()
+    cache = ReviewCache()
 
     reviewed = 0
     changed = 0
@@ -128,6 +135,20 @@ def main():
 
         reviewed += 1
 
+        # Skip unchanged files during full repository review.
+        if (
+            review_mode == "all"
+            and not cache.needs_review(
+                str(file),
+                original,
+            )
+        ):
+            skipped += 1
+
+            print("✓ Unchanged (cached)")
+
+            continue
+
         try:
 
             backup_file(Path(file))
@@ -156,6 +177,11 @@ def main():
 
                 delete_backup(Path(file))
 
+                cache.update(
+                    str(file),
+                    updated,
+                )
+
                 changed += 1
 
                 changed_files.append(str(file))
@@ -166,12 +192,17 @@ def main():
 
                 delete_backup(Path(file))
 
+                cache.update(
+                    str(file),
+                    updated,
+                )
+
                 skipped += 1
 
                 print("✓ No changes needed")
 
-            # Reduce the chance of hitting Gemini free-tier limits.
-            time.sleep(2)
+            # Reduce Gemini free-tier rate limits.
+            time.sleep(REVIEW_DELAY)
 
         except Exception as e:
 
@@ -224,9 +255,9 @@ def main():
 
         if committed:
 
-            print("Pushing to feature-1...")
+            print("Pushing to GitHub...")
 
-            pushed = git.push("feature-1")
+            pushed = git.push()
 
             if pushed:
                 print("✓ Push completed successfully.")
@@ -243,18 +274,24 @@ def main():
         print("No files were modified.")
         print("Nothing to commit.")
 
+    # Save the review cache for future runs.
+    cache.save()
+
     elapsed = time.time() - start_time
 
-    line()
-    print("Execution Summary")
-    line()
+    stats = ReviewStatistics(
+        review_mode=review_mode,
+        files_discovered=len(files),
+        files_reviewed=reviewed,
+        files_changed=changed,
+        files_skipped=skipped,
+        files_failed=failed,
+        execution_time=elapsed,
+    )
 
-    print(f"Review mode        : {review_mode}")
-    print(f"Total time         : {elapsed:.2f} seconds")
+    print()
 
-    if reviewed:
-        success = ((reviewed - failed) / reviewed) * 100
-        print(f"Success rate       : {success:.1f}%")
+    print_report(stats)
 
     line()
     print("Daily AI Review Finished")

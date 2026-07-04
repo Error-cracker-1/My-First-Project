@@ -4,7 +4,13 @@ Gemini client for the Daily AI Review project.
 
 import os
 import time
+
 from google import genai
+
+from .prompts import (
+    commit_prompt,
+    review_prompt,
+)
 
 MODEL = "gemini-2.5-flash"
 
@@ -13,6 +19,10 @@ INITIAL_DELAY = 25
 
 
 class GeminiClient:
+    """
+    Wrapper around the Gemini API.
+    """
+
     def __init__(self):
         api_key = os.getenv("GOOGLE_API_KEY")
 
@@ -64,47 +74,11 @@ class GeminiClient:
             "Gemini API quota exceeded after multiple retries."
         )
 
-    def review_file(
-        self,
-        filename: str,
-        content: str,
-    ) -> str:
+    @staticmethod
+    def _clean_response(text: str) -> str:
         """
-        Review one file.
+        Remove Markdown code fences if Gemini returns them.
         """
-
-        prompt = f"""
-You are an expert software engineer reviewing a Git repository.
-
-Review ONLY this file.
-
-Filename:
-{filename}
-
-Rules:
-- Preserve functionality.
-- Do not invent new features.
-- Fix bugs if they exist.
-- Improve readability.
-- Improve formatting.
-- Improve comments where useful.
-- Keep the same programming language.
-- Return ONLY the complete updated file.
-- Do NOT explain your changes.
-- Do NOT use markdown.
-- Do NOT wrap the answer in ```.
-
-File:
-
-{content}
-"""
-
-        response = self._generate(prompt)
-
-        text = getattr(response, "text", None)
-
-        if not text:
-            return content
 
         text = text.strip()
 
@@ -121,6 +95,31 @@ File:
         if text.lower().startswith("python\n"):
             text = text[7:]
 
+        return text.strip()
+
+    def review_file(
+        self,
+        filename: str,
+        content: str,
+    ) -> str:
+        """
+        Review one source file.
+        """
+
+        prompt = review_prompt(
+            filename=filename,
+            content=content,
+        )
+
+        response = self._generate(prompt)
+
+        text = getattr(response, "text", None)
+
+        if not text:
+            return content
+
+        text = self._clean_response(text)
+
         return text or content
 
     def generate_commit_message(
@@ -128,26 +127,10 @@ File:
         changed_files: list[str],
     ) -> tuple[str, str]:
         """
-        Generate a professional Git commit.
+        Generate a professional Git commit message.
         """
 
-        prompt = f"""
-Generate a professional Git commit message.
-
-Changed files:
-
-{chr(10).join(changed_files)}
-
-Return exactly:
-
-TITLE:
-<one line>
-
-BODY:
-<multiple lines>
-
-Do not use markdown.
-"""
+        prompt = commit_prompt(changed_files)
 
         response = self._generate(prompt)
 
@@ -166,7 +149,10 @@ Do not use markdown.
 
         if "TITLE:" in text and "BODY:" in text:
             try:
-                title_part, body_part = text.split("BODY:", 1)
+                title_part, body_part = text.split(
+                    "BODY:",
+                    1,
+                )
 
                 title = (
                     title_part.replace(

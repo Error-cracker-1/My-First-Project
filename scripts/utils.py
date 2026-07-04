@@ -6,31 +6,29 @@ from datetime import datetime
 from pathlib import Path
 import shutil
 
+from .config import BACKUP_EXTENSION
 
-def file_changed(original: str, updated: str) -> bool:
+
+def file_changed(
+    original: str,
+    updated: str,
+) -> bool:
     """
-    Return True if the AI changed the file.
+    Return True if the file content changed.
     """
+
     return original.strip() != updated.strip()
-
-
-def save_file(path: Path, content: str) -> None:
-    """
-    Save UTF-8 text.
-    """
-    path.write_text(
-        content,
-        encoding="utf-8",
-    )
 
 
 def backup_file(path: Path) -> Path:
     """
-    Create a backup before editing.
+    Create a backup of a file.
+
+    Returns the backup path.
     """
 
     backup = path.with_suffix(
-        path.suffix + ".bak"
+        path.suffix + BACKUP_EXTENSION
     )
 
     shutil.copy2(path, backup)
@@ -38,99 +36,77 @@ def backup_file(path: Path) -> Path:
     return backup
 
 
-def restore_backup(path: Path) -> bool:
+def restore_backup(path: Path) -> None:
     """
-    Restore the backup if it exists.
+    Restore a file from its backup.
     """
 
     backup = path.with_suffix(
-        path.suffix + ".bak"
+        path.suffix + BACKUP_EXTENSION
     )
 
-    if not backup.exists():
-        return False
-
-    shutil.copy2(backup, path)
-
-    backup.unlink()
-
-    return True
+    if backup.exists():
+        shutil.move(backup, path)
 
 
 def delete_backup(path: Path) -> None:
     """
-    Delete the backup after a successful review.
+    Delete a backup file.
     """
 
     backup = path.with_suffix(
-        path.suffix + ".bak"
+        path.suffix + BACKUP_EXTENSION
     )
 
     if backup.exists():
         backup.unlink()
 
 
-def update_changelog(
-    changed_files: list[str],
-    commit_title: str,
+def save_file(
+    path: Path,
+    content: str,
 ) -> None:
     """
-    Update AI_CHANGELOG.md.
+    Save UTF-8 text to a file.
     """
 
-    if not changed_files:
-        return
-
-    changelog = Path(
-        "AI_CHANGELOG.md"
+    path.write_text(
+        content,
+        encoding="utf-8",
     )
+
+
+def update_changelog(
+    changed_files: list[str],
+    title: str,
+) -> None:
+    """
+    Append an entry to AI_CHANGELOG.md.
+    """
+
+    changelog = Path("AI_CHANGELOG.md")
+
+    timestamp = datetime.now().strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+
+    lines = [
+        "",
+        "## " + timestamp,
+        "",
+        f"### {title}",
+        "",
+        "Modified files:",
+        "",
+    ]
+
+    for file in changed_files:
+        lines.append(f"- {file}")
+
+    lines.append("")
 
     with changelog.open(
         "a",
         encoding="utf-8",
     ) as f:
-
-        f.write("\n")
-        f.write("=" * 60 + "\n")
-        f.write(
-            f"Date: {datetime.now():%Y-%m-%d %H:%M:%S}\n"
-        )
-        f.write(
-            f"Commit: {commit_title}\n"
-        )
-        f.write(
-            f"Files Changed: {len(changed_files)}\n"
-        )
-        f.write("\n")
-
-        for file in changed_files:
-            f.write(f"- {file}\n")
-
-        f.write("\n")
-
-
-def print_header(title: str) -> None:
-    """
-    Print a formatted header.
-    """
-
-    print()
-    print("=" * 60)
-    print(title)
-    print("=" * 60)
-
-
-def print_success(message: str) -> None:
-    """
-    Print a success message.
-    """
-
-    print(f"✓ {message}")
-
-
-def print_error(message: str) -> None:
-    """
-    Print an error message.
-    """
-
-    print(f"✗ {message}")
+        f.write("\n".join(lines))

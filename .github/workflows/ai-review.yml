@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout feature-1
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           ref: feature-1
           fetch-depth: 0
@@ -46,16 +46,25 @@ jobs:
 
       - name: Determine review mode
         id: mode
+        shell: bash
         run: |
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            echo "mode=modified" >> $GITHUB_OUTPUT
+            DAY=$(date +%u)
+
+            if [ "$DAY" -eq 7 ]; then
+              echo "mode=all" >> $GITHUB_OUTPUT
+            else
+              echo "mode=modified" >> $GITHUB_OUTPUT
+            fi
           else
             echo "mode=${{ github.event.inputs.review_mode }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Show review mode
+      - name: Display review mode
         run: |
-          echo "Review Mode: ${{ steps.mode.outputs.mode }}"
+          echo "=============================================="
+          echo "Review Mode : ${{ steps.mode.outputs.mode }}"
+          echo "=============================================="
 
       - name: Run AI Review
         env:

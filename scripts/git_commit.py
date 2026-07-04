@@ -4,58 +4,42 @@ Git commit manager for the Daily AI Review project.
 
 import subprocess
 
+from .config import TARGET_BRANCH
 from .gemini_client import GeminiClient
 
 
 class GitCommitManager:
     """
-    Handles Git operations for the AI review workflow.
+    Handles Git commit and push operations.
     """
 
     def __init__(self):
         self.client = GeminiClient()
-
-    def _run(self, command: list[str]) -> subprocess.CompletedProcess:
-        """
-        Execute a Git command.
-        """
-
-        return subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-
-    def current_branch(self) -> str:
-        """
-        Return the current Git branch.
-        """
-
-        result = self._run(
-            ["git", "branch", "--show-current"]
-        )
-
-        return result.stdout.strip()
 
     def has_changes(self) -> bool:
         """
         Return True if the repository contains changes.
         """
 
-        result = self._run(
-            ["git", "status", "--porcelain"]
+        result = subprocess.run(
+            ["git", "status", "--porcelain"],
+            capture_output=True,
+            text=True,
+            check=True,
         )
 
         return bool(result.stdout.strip())
 
     def changed_files(self) -> list[str]:
         """
-        Return a list of modified files.
+        Return a list of changed tracked files.
         """
 
-        result = self._run(
-            ["git", "diff", "--name-only"]
+        result = subprocess.run(
+            ["git", "diff", "--name-only"],
+            capture_output=True,
+            text=True,
+            check=True,
         )
 
         return [
@@ -70,7 +54,7 @@ class GitCommitManager:
         """
 
         if not self.has_changes():
-            print("No repository changes detected.")
+            print("No changes detected.")
             return False
 
         files = self.changed_files()
@@ -79,25 +63,14 @@ class GitCommitManager:
             print("No tracked files changed.")
             return False
 
-        print()
-        print("=" * 60)
-        print("Files to commit")
-        print("=" * 60)
-
-        for file in files:
-            print(f"• {file}")
-
-        print()
-
         title, body = self.client.generate_commit_message(files)
 
+        subprocess.run(
+            ["git", "add", "."],
+            check=True,
+        )
+
         try:
-
-            subprocess.run(
-                ["git", "add", "."],
-                check=True,
-            )
-
             subprocess.run(
                 [
                     "git",
@@ -114,43 +87,32 @@ class GitCommitManager:
             print("=" * 60)
             print("Commit created successfully.")
             print("=" * 60)
-            print(f"Title : {title}")
-            print()
-            print(body)
-            print("=" * 60)
             print()
 
             return True
 
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
 
             print()
             print("=" * 60)
-            print("Git commit failed.")
+            print("Nothing to commit.")
             print("=" * 60)
-
-            if e.stderr:
-                print(e.stderr)
-
             print()
 
             return False
 
-    def push(self, branch: str = "feature-1") -> bool:
+    def push(
+        self,
+        branch: str | None = None,
+    ) -> bool:
         """
         Push commits to GitHub.
         """
 
-        current = self.current_branch()
-
-        if current != branch:
-            print(
-                f"Current branch is '{current}', expected '{branch}'."
-            )
-            return False
+        if branch is None:
+            branch = TARGET_BRANCH
 
         try:
-
             subprocess.run(
                 [
                     "git",
@@ -163,23 +125,18 @@ class GitCommitManager:
 
             print()
             print("=" * 60)
-            print("Push completed successfully.")
-            print(f"Branch : {branch}")
+            print(f"Pushed successfully to {branch}.")
             print("=" * 60)
             print()
 
             return True
 
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
 
             print()
             print("=" * 60)
-            print("Git push failed.")
+            print("Failed to push changes.")
             print("=" * 60)
-
-            if e.stderr:
-                print(e.stderr)
-
             print()
 
             return False
