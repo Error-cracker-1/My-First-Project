@@ -10,11 +10,11 @@ and pushes them to feature-1.
 import time
 from pathlib import Path
 
-from scripts.repository import (
+from .repository import (
     get_git_tracked_files,
     read_file,
 )
-from scripts.utils import (
+from .utils import (
     file_changed,
     save_file,
     backup_file,
@@ -22,8 +22,8 @@ from scripts.utils import (
     delete_backup,
     update_changelog,
 )
-from scripts.gemini_client import GeminiClient
-from scripts.git_commit import GitCommitManager
+from .gemini_client import GeminiClient
+from .git_commit import GitCommitManager
 
 
 def line():

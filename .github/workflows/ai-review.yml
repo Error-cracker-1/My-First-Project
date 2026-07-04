@@ -38,4 +38,4 @@ jobs:
       - name: Run AI Review
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-        run: python scripts/ai_review.py
+        run: python -m scripts.ai_review

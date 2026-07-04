@@ -4,7 +4,7 @@ Git commit manager for the Daily AI Review project.
 
 import subprocess
 
-from scripts.gemini_client import GeminiClient
+from .gemini_client import GeminiClient
 
 
 class GitCommitManager:
