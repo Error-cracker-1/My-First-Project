@@ -8,8 +8,8 @@ import time
 from google import genai
 
 from .prompts import (
+    PromptManager,
     commit_prompt,
-    review_prompt,
 )
 
 MODEL = "gemini-2.5-flash"
@@ -32,6 +32,7 @@ class GeminiClient:
             )
 
         self.client = genai.Client(api_key=api_key)
+        self.prompt_manager = PromptManager()
 
     def _generate(self, prompt: str):
         """
@@ -106,7 +107,7 @@ class GeminiClient:
         Review one source file.
         """
 
-        prompt = review_prompt(
+        prompt = self.prompt_manager.review_prompt(
             filename=filename,
             content=content,
         )

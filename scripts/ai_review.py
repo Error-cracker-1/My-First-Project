@@ -21,6 +21,13 @@ from pathlib import Path
 
 from .cache import ReviewCache
 from .config import REVIEW_DELAY
+from .dashboard import generate_dashboard
+from .html_dashboard import generate_html_dashboard
+from .function_review import (
+    compare_functions,
+    merge_updated_functions,
+    read_head_version,
+)
 from .repository import (
     get_git_tracked_files,
     read_file,
@@ -37,6 +44,7 @@ from .report import (
     ReviewStatistics,
     print_report,
 )
+from .review_report import generate_review_report
 from .gemini_client import GeminiClient
 from .git_commit import GitCommitManager
 
@@ -102,6 +110,11 @@ def main():
     failed = 0
 
     changed_files = []
+    skipped_files = []
+    failed_files = {}
+    commit_title = "Not generated"
+    commit_body = "No AI commit was generated."
+    changelog_files = []
 
     files = get_git_tracked_files(review_mode)
 
@@ -114,6 +127,46 @@ def main():
         else:
             print("No modified supported files found.")
             print("Repository is already up to date.")
+
+        elapsed = time.time() - start_time
+
+        stats = ReviewStatistics(
+            review_mode=review_mode,
+            files_discovered=0,
+            files_reviewed=reviewed,
+            files_changed=changed,
+            files_skipped=skipped,
+            files_failed=failed,
+            execution_time=elapsed,
+        )
+
+        report_path = generate_review_report(
+            stats=stats,
+            modified_files=changed_files,
+            skipped_files=skipped_files,
+            failed_files=failed_files,
+            commit_title=commit_title,
+            commit_body=commit_body,
+            changelog_files=changelog_files,
+        )
+
+        print(f"AI review report saved to: {report_path}")
+
+        dashboard_path = generate_dashboard(
+            stats=stats,
+            review_mode=review_mode,
+            modified_files=changed_files,
+            report_path=report_path,
+        )
+
+        print(f"AI repository dashboard saved to: {dashboard_path}")
+
+        html_dashboard_path = generate_html_dashboard(
+            commit_title=commit_title,
+            commit_body=commit_body,
+        )
+
+        print(f"HTML dashboard saved to: {html_dashboard_path}")
 
         line()
         return
@@ -131,6 +184,7 @@ def main():
 
         if original is None:
             skipped += 1
+            skipped_files.append(str(file))
             continue
 
         reviewed += 1
@@ -145,18 +199,69 @@ def main():
         ):
             skipped += 1
 
+            skipped_files.append(str(file))
+
             print("✓ Unchanged (cached)")
 
             continue
 
         try:
 
+            changed_functions = None
+
+            if Path(file).suffix.lower() == ".py":
+                base_content = read_head_version(Path(file))
+
+                if base_content is not None:
+                    try:
+                        changed_functions = compare_functions(
+                            base_content,
+                            original,
+                        )
+
+                    except SyntaxError:
+                        print(
+                            "Python AST parse failed; falling back "
+                            "to whole-file review."
+                        )
+
+                    if changed_functions == []:
+                        skipped += 1
+                        skipped_files.append(str(file))
+                        cache.update(
+                            str(file),
+                            original,
+                        )
+
+                        print(
+                            "✓ No changed Python functions; "
+                            "Gemini review skipped"
+                        )
+
+                        continue
+
             backup_file(Path(file))
 
-            updated = client.review_file(
-                filename=str(file),
-                content=original,
-            )
+            if changed_functions:
+                updated_functions = {}
+
+                for function in changed_functions:
+                    updated_functions[function.qualname] = client.review_file(
+                        filename=f"{file}::{function.qualname}",
+                        content=function.source,
+                    )
+
+                updated = merge_updated_functions(
+                    original,
+                    changed_functions,
+                    updated_functions,
+                )
+
+            else:
+                updated = client.review_file(
+                    filename=str(file),
+                    content=original,
+                )
 
             if not updated:
 
@@ -165,6 +270,7 @@ def main():
                 restore_backup(Path(file))
 
                 failed += 1
+                failed_files[str(file)] = "No response from Gemini."
 
                 continue
 
@@ -198,6 +304,7 @@ def main():
                 )
 
                 skipped += 1
+                skipped_files.append(str(file))
 
                 print("✓ No changes needed")
 
@@ -215,6 +322,7 @@ def main():
                 pass
 
             failed += 1
+            failed_files[str(file)] = str(e)
 
             line()
     print("Review Summary")
@@ -242,12 +350,16 @@ def main():
             changed_files
         )
 
+        commit_title = title
+        commit_body = body
+
         print("Updating AI_CHANGELOG.md...")
 
         update_changelog(
             changed_files,
             title,
         )
+        changelog_files = changed_files.copy()
 
         print("Creating Git commit...")
 
@@ -292,6 +404,34 @@ def main():
     print()
 
     print_report(stats)
+
+    report_path = generate_review_report(
+        stats=stats,
+        modified_files=changed_files,
+        skipped_files=skipped_files,
+        failed_files=failed_files,
+        commit_title=commit_title,
+        commit_body=commit_body,
+        changelog_files=changelog_files,
+    )
+
+    print(f"AI review report saved to: {report_path}")
+
+    dashboard_path = generate_dashboard(
+        stats=stats,
+        review_mode=review_mode,
+        modified_files=changed_files,
+        report_path=report_path,
+    )
+
+    print(f"AI repository dashboard saved to: {dashboard_path}")
+
+    html_dashboard_path = generate_html_dashboard(
+        commit_title=commit_title,
+        commit_body=commit_body,
+    )
+
+    print(f"HTML dashboard saved to: {html_dashboard_path}")
 
     line()
     print("Daily AI Review Finished")
