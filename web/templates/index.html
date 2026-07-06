@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Home</h1>
+
+<div class="grid">
+  <div class="card">
+    <h3>Repository</h3>
+    <p><strong>Name:</strong> {{ repo_name }}</p>
+    <p><strong>Branch:</strong> {{ branch }}</p>
+    <p><strong>Files discovered:</strong> {{ files_discovered }}</p>
+    <p><strong>Last review:</strong> {{ last_review or 'never' }}</p>
+    <p><strong>Health:</strong> {{ repo_health if repo_health is not none else 'n/a' }}</p>
+  </div>
+
+  <div class="card">
+    <h3>Quick Actions</h3>
+    <button id="run-modified" class="btn">Run Modified Review</button>
+    <button id="run-all" class="btn">Run Full Repository Review</button>
+    <p style="margin-top: 12px;">
+      <a class="link" href="/dashboard">View Dashboard</a> ·
+      <a class="link" href="/reports">View Reports</a> ·
+      <a class="link" href="/ai_report">View AI_REPORT.md</a>
+    </p>
+  </div>
+
+  <div class="card full-width" id="log-card" style="display:none;">
+    <h3>Live Review Log</h3>
+    <div id="log" class="log"></div>
+    <div id="status" class="status"></div>
+  </div>
+</div>
+{% endblock %}

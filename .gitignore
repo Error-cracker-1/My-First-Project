@@ -1,2 +1,8 @@
-# Ignore the automation validation script
-check_and_commit.py
+# Ignore runtime/state files for the web UI
+
+web/.web_review_state.json
+web/review.log
+
+# Python caches
+__pycache__/
+*.py[cod]

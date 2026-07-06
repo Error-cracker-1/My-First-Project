@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Dashboard</h1>
+{% if dashboard_exists is defined and not dashboard_exists %}
+  <p>No dashboard HTML found in reports/dashboard.html.</p>
+{% else %}
+  <p>If a dashboard exists it will be rendered directly from reports/dashboard.html.</p>
+{% endif %}
+{% endblock %}

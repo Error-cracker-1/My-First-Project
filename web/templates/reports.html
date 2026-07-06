@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Reports</h1>
+
+{% if not reports %}
+  <p>No reports found.</p>
+{% else %}
+  <table class="reports-table">
+    <thead><tr><th>Filename</th><th>Date</th><th>Action</th></tr></thead>
+    <tbody>
+      {% for r in reports %}
+      <tr>
+        <td>{{ r.name }}</td>
+        <td>{{ r.date }}</td>
+        <td><a class="btn small" href="/reports/view/{{ r.name }}">Open</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+{% endblock %}
