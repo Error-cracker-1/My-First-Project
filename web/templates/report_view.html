@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+  <div>
+    <h1 style="margin: 0; font-size: 1.8rem; display: flex; align-items: center; gap: 10px;">
+      <span>📑</span> Report: <span style="color: var(--accent);">{{ filename }}</span>
+    </h1>
+  </div>
+  <a href="/reports" class="btn secondary" style="padding: 8px 18px; font-weight: 600;">← Back to Reports</a>
+</div>
+
+<!-- 1. Changed Files List Card -->
+<div class="card full-width" style="margin-bottom: 28px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+      <span>📁</span> Changed Files
+      <span class="badge" style="background: var(--accent-light, rgba(79, 70, 229, 0.12)); color: var(--accent); font-weight: 700; padding: 4px 10px; border-radius: 12px; font-size: 0.82rem;">
+        {{ changed_files|length if changed_files else 0 }} file{% if not changed_files or changed_files|length != 1 %}s{% endif %}
+      </span>
+    </h3>
+  </div>
+
+  {% if changed_files and changed_files|length > 0 %}
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      {% for f in changed_files %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.1rem;">📄</span>
+            <span style="font-family: monospace; font-weight: 600; font-size: 0.92rem; color: var(--text);">{{ f }}</span>
+          </div>
+          <a href="#diff-file-{{ loop.index }}" class="btn small outline" style="font-weight: 600; font-size: 0.85rem; padding: 4px 12px; border-radius: 8px;">
+            View Diff ↓
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p style="color: var(--muted); margin: 0; font-style: italic;">No specific modified files detected in this report execution.</p>
+  {% endif %}
+</div>
+
+<!-- 2. File Code Diffs Section -->
+{% if file_diffs and file_diffs|length > 0 %}
+  <div style="margin-bottom: 32px;">
+    <h2 style="font-size: 1.4rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+      <span>🔍</span> File Changes & Code Diffs
+    </h2>
+
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      {% for fd in file_diffs %}
+        <div class="card full-width diff-card" id="diff-file-{{ loop.index }}" style="padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 1.2rem;">📄</span>
+              <strong style="font-family: monospace; font-size: 1.05rem; color: var(--text);">{{ fd.file }}</strong>
+            </div>
+            <span class="badge" style="background: var(--success-bg, rgba(16, 185, 129, 0.12)); color: var(--success, #10b981); font-weight: 700; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem;">
+              Modified
+            </span>
+          </div>
+
+          <!-- What & Why Summary -->
+          {% if fd.what or fd.why %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 16px; background: var(--bg); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border);">
+              <div>
+                <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; color: var(--muted); display: block; margin-bottom: 2px;">What Changed</span>
+                <span style="font-size: 0.9rem; color: var(--text);">{{ fd.what }}</span>
+              </div>
+              <div>
+                <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; color: var(--muted); display: block; margin-bottom: 2px;">Why Changed</span>
+                <span style="font-size: 0.9rem; color: var(--text);">{{ fd.why }}</span>
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Diff View -->
+          {% if fd.diff_html %}
+            <div style="margin-top: 12px;">
+              <div style="font-size: 0.82rem; font-weight: 700; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Unified Code Diff</div>
+              {{ fd.diff_html | safe }}
+            </div>
+          {% else %}
+            <div style="background: var(--bg); padding: 16px; border-radius: 8px; text-align: center; color: var(--muted); font-size: 0.9rem; font-style: italic;">
+              No line-by-line raw git diff captured for this file in current working directory.
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+<!-- 3. Full Report Document Content -->
+<div class="card full-width" style="margin-top: 32px;">
+  <h2 style="font-size: 1.3rem; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+    <span>📋</span> Complete Report Artifact
+  </h2>
+  <article class="report-content" style="line-height: 1.7;">
+    {{ content | safe }}
+  </article>
+</div>
+
+<div style="margin-top: 24px; text-align: right;">
+  <a href="/reports" class="btn secondary">← Back to Reports List</a>
+</div>
+{% endblock %}

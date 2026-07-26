@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Repository Dashboard</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --border: #d9e2ec;
+      --accent: #2563eb;
+      --accent-soft: #e8f0ff;
+      --shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+      --green: #10b981;
+      --orange: #f59e0b;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --card: #111827;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --border: #263244;
+        --accent: #60a5fa;
+        --accent-soft: #172554;
+        --shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+    .page { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0; }
+    .hero { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; margin-bottom: 28px; }
+    h1, h2 { margin: 0; }
+    h1 { font-size: clamp(2rem, 5vw, 3.6rem); letter-spacing: -0.04em; }
+    h2 { font-size: 1.1rem; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .subtitle { color: var(--muted); margin-top: 8px; }
+    .badge { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--border); border-radius: 999px; padding: 8px 14px; font-weight: 700; }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
+    .card { grid-column: span 6; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 22px; box-shadow: var(--shadow); }
+    .card.full { grid-column: 1 / -1; }
+    .card.third { grid-column: span 4; }
+    .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .metric { border: 1px solid var(--border); border-radius: 14px; padding: 14px; background: color-mix(in srgb, var(--card) 90%, var(--accent-soft)); }
+    .metric span { color: var(--muted); font-size: 0.85rem; }
+    .metric strong { display: block; font-size: 1.25rem; margin-top: 4px; }
+    dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; margin: 0; }
+    dt { color: var(--muted); }
+    dd { margin: 0; font-weight: 700; }
+    ul { margin: 0; padding-left: 18px; }
+    li { margin-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid var(--border); padding: 10px; text-align: left; font-size: 0.9rem; }
+    th { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    footer { color: var(--muted); margin-top: 32px; text-align: center; font-size: 0.9rem; }
+    .chart-container { width: 100%; height: 220px; }
+    .line { fill: none; stroke-width: 3; }
+    .axis-label { font-size: 10px; fill: var(--muted); }
+    .legend { display: flex; gap: 16px; font-size: 0.8rem; margin-bottom: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-box { width: 12px; height: 12px; border-radius: 3px; }
+    @media (max-width: 900px) { .card, .card.third { grid-column: 1 / -1; } }
+    
+    /* New styles for statuses and badges */
+    .badge-status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-status.success {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .badge-status.failed {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .badge-model {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      border: 1px solid var(--border);
+    }
+    .reason-text {
+      color: #ef4444;
+      font-size: 0.85rem;
+      display: inline-block;
+      max-width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: help;
+      border-bottom: 1px dashed rgba(239, 68, 68, 0.5);
+    }
+    .text-muted {
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div>
+        <h1>AI Repository Dashboard</h1>
+        <p class="subtitle">Detailed analysis of repository health and AI model performance.</p>
+      </div>
+      <div class="badge">gemini-2.5-flash</div>
+    </section>
+    
+    <section class="grid">
+      <article class="card full">
+        <h2>Health & Success Trends</h2>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-box" style="background: var(--accent);"></div> Overall Health</div>
+          <div class="legend-item"><div class="legend-box" style="background: var(--green);"></div> Success Rate %</div>
+        </div>
+        <div id="main-chart" class="chart-container"></div>
+      </article>
+
+      <article class="card third">
+        <h2>Model Usage</h2>
+        
+        <div class="model-stat-card" style="margin-bottom: 14px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: color-mix(in srgb, var(--card) 95%, var(--accent-soft));">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span class="badge-model" style="margin: 0;">gemini-2.5-flash</span>
+            <strong style="font-size: 1.1rem; color: var(--accent);">1 review</strong>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; font-size: 0.8rem; color: var(--muted);">
+            <div>
+              <span style="display: block;">Avg Time</span>
+              <strong style="color: var(--text); font-size: 0.9rem;">5.00s</strong>
+            </div>
+            <div>
+              <span style="display: block;">Avg Health</span>
+              <strong style="color: var(--text); font-size: 0.9rem;">0.0</strong>
+            </div>
+            <div>
+              <span style="display: block;">Success %</span>
+              <strong style="color: var(--text); font-size: 0.9rem;">100.0%</strong>
+            </div>
+          </div>
+        </div>
+        
+
+        <div class="model-stat-card" style="margin-bottom: 14px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: color-mix(in srgb, var(--card) 95%, var(--accent-soft));">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span class="badge-model" style="margin: 0;">gemini-1.5-flash</span>
+            <strong style="font-size: 1.1rem; color: var(--accent);">5 reviews</strong>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; font-size: 0.8rem; color: var(--muted);">
+            <div>
+              <span style="display: block;">Avg Time</span>
+              <strong style="color: var(--text); font-size: 0.9rem;">10.38s</strong>
+            </div>
+            <div>
+              <span style="display: block;">Avg Health</span>
+              <strong style="color: var(--text); font-size: 0.9rem;">88.0</strong>
+            </div>
+            <div>
+              <span style="display: block;">Success %</span>
+              <strong style="color: var(--text); font-size: 0.9rem;">100.0%</strong>
+            </div>
+          </div>
+        </div>
+        
+      </article>
+
+      <article class="card third">
+        <h2>Automated Insights</h2>
+        <ul>
+          <li>Health score dropped by 95 points. Check recent changes.</li>
+<li>Average success rate is 100.0%.</li>
+        </ul>
+      </article>
+
+      <article class="card third">
+        <h2>Review Statistics</h2>
+        <div class="stats">
+          <div class="metric"><span>Discovered</span><strong>0</strong></div>
+          <div class="metric"><span>Latest Model</span><strong>gemini-2.5-flash</strong></div>
+        </div>
+      </article>
+
+      <article class="card full">
+        <h2>📁 Detailed File Changes (Which, What & Why)</h2>
+        <table>
+          <thead>
+            <tr><th>Which File</th><th>What Changed</th><th>Why Changed</th></tr>
+          </thead>
+          <tbody>
+            
+        <tr>
+          <td><code style="background: var(--accent-soft); color: var(--accent); padding: 2px 6px; border-radius: 4px;">test.py</code></td>
+          <td>Added test case</td>
+          <td>Verify functionality</td>
+        </tr>
+        
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card full">
+        <h2>History Detail</h2>
+
+        <table>
+          <thead>
+            <tr><th>Report</th><th>Date & Time</th><th>Model</th><th>Health</th><th>Status</th><th>Fail Reasons</th></tr>
+          </thead>
+          <tbody>
+            
+        <tr>
+          <td><a href="/reports/view/2026-07-22_05-51-40_review.md">2026-07-22_05-51-40_review.md</a></td>
+          <td>Jul 22, 2026 05:51:40 AM</td>
+          <td><span class="badge-model">gemini-2.5-flash</span></td>
+          <td><strong>Pending</strong></td>
+          <td>
+            <span class="badge-status success">Success</span>
+            <div style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">100.0% success</div>
+          </td>
+          <td>
+            <span class="text-muted">-</span>
+          </td>
+        </tr>
+        
+        <tr>
+          <td><a href="/reports/view/2026-07-18_05-03-18_review.md">2026-07-18_05-03-18_review.md</a></td>
+          <td>Jul 18, 2026 05:03:18 AM</td>
+          <td><span class="badge-model">gemini-1.5-flash</span></td>
+          <td><strong>95</strong></td>
+          <td>
+            <span class="badge-status success">Success</span>
+            <div style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">100.0% success</div>
+          </td>
+          <td>
+            <span class="text-muted">-</span>
+          </td>
+        </tr>
+        
+        <tr>
+          <td><a href="/reports/view/2026-07-17_05-03-18_review.md">2026-07-17_05-03-18_review.md</a></td>
+          <td>Jul 17, 2026 05:03:18 AM</td>
+          <td><span class="badge-model">gemini-1.5-flash</span></td>
+          <td><strong>90</strong></td>
+          <td>
+            <span class="badge-status success">Success</span>
+            <div style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">100.0% success</div>
+          </td>
+          <td>
+            <span class="text-muted">-</span>
+          </td>
+        </tr>
+        
+        <tr>
+          <td><a href="/reports/view/2026-07-16_05-03-18_review.md">2026-07-16_05-03-18_review.md</a></td>
+          <td>Jul 16, 2026 05:03:18 AM</td>
+          <td><span class="badge-model">gemini-1.5-flash</span></td>
+          <td><strong>82</strong></td>
+          <td>
+            <span class="badge-status success">Success</span>
+            <div style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">100.0% success</div>
+          </td>
+          <td>
+            <span class="text-muted">-</span>
+          </td>
+        </tr>
+        
+        <tr>
+          <td><a href="/reports/view/2026-07-15_05-03-18_review.md">2026-07-15_05-03-18_review.md</a></td>
+          <td>Jul 15, 2026 05:03:18 AM</td>
+          <td><span class="badge-model">gemini-1.5-flash</span></td>
+          <td><strong>88</strong></td>
+          <td>
+            <span class="badge-status success">Success</span>
+            <div style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">100.0% success</div>
+          </td>
+          <td>
+            <span class="text-muted">-</span>
+          </td>
+        </tr>
+        
+        <tr>
+          <td><a href="/reports/view/2026-07-14_05-03-18_review.md">2026-07-14_05-03-18_review.md</a></td>
+          <td>Jul 14, 2026 05:03:18 AM</td>
+          <td><span class="badge-model">gemini-1.5-flash</span></td>
+          <td><strong>85</strong></td>
+          <td>
+            <span class="badge-status success">Success</span>
+            <div style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">100.0% success</div>
+          </td>
+          <td>
+            <span class="text-muted">-</span>
+          </td>
+        </tr>
+        
+          </tbody>
+        </table>
+      </article>
+    </section>
+    <footer>
+      Generated by Daily AI Review · 2026-07-22 05:51:59
+    </footer>
+  </main>
+
+  <script>
+    const data = [{"path": "reports/2026-07-14_05-03-18_review.md", "date": "2026-07-14", "display_date": "Jul 14, 2026 05:03:18 AM", "status": "Success", "mode": "all", "model": "gemini-1.5-flash", "execution_time": "10.71", "health": "85", "health_int": 85, "doc": 88, "quality": 88, "maintain": 80, "success_rate": 100.0, "fail_reasons": "None"}, {"path": "reports/2026-07-15_05-03-18_review.md", "date": "2026-07-15", "display_date": "Jul 15, 2026 05:03:18 AM", "status": "Success", "mode": "all", "model": "gemini-1.5-flash", "execution_time": "8.70", "health": "88", "health_int": 88, "doc": 88, "quality": 86, "maintain": 93, "success_rate": 100.0, "fail_reasons": "None"}, {"path": "reports/2026-07-16_05-03-18_review.md", "date": "2026-07-16", "display_date": "Jul 16, 2026 05:03:18 AM", "status": "Success", "mode": "all", "model": "gemini-1.5-flash", "execution_time": "14.57", "health": "82", "health_int": 82, "doc": 84, "quality": 77, "maintain": 77, "success_rate": 100.0, "fail_reasons": "None"}, {"path": "reports/2026-07-17_05-03-18_review.md", "date": "2026-07-17", "display_date": "Jul 17, 2026 05:03:18 AM", "status": "Success", "mode": "all", "model": "gemini-1.5-flash", "execution_time": "10.77", "health": "90", "health_int": 90, "doc": 85, "quality": 85, "maintain": 94, "success_rate": 100.0, "fail_reasons": "None"}, {"path": "reports/2026-07-18_05-03-18_review.md", "date": "2026-07-18", "display_date": "Jul 18, 2026 05:03:18 AM", "status": "Success", "mode": "all", "model": "gemini-1.5-flash", "execution_time": "7.16", "health": "95", "health_int": 95, "doc": 95, "quality": 99, "maintain": 93, "success_rate": 100.0, "fail_reasons": "None"}, {"path": "reports/2026-07-22_05-51-40_review.md", "date": "2026-07-22", "display_date": "Jul 22, 2026 05:51:40 AM", "status": "Success", "mode": "modified", "model": "gemini-2.5-flash", "execution_time": "5.00", "health": "Pending", "health_int": 0, "doc": 0, "quality": 0, "maintain": 0, "success_rate": 100.0, "fail_reasons": "None"}];
+    
+    function drawCharts() {
+      if (!data.length) return;
+      
+      const container = d3.select("#main-chart");
+      const width = container.node().clientWidth;
+      const height = container.node().clientHeight;
+      const margin = {top: 10, right: 30, bottom: 40, left: 40};
+      
+      const svg = container.append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+      const x = d3.scalePoint()
+        .domain(data.map(d => d.date))
+        .range([0, width - margin.left - margin.right]);
+
+      const y = d3.scaleLinear()
+        .domain([0, 100])
+        .range([height - margin.top - margin.bottom, 0]);
+
+      svg.append("g")
+        .attr("transform", `translate(0, ${height - margin.top - margin.bottom})`)
+        .call(d3.axisBottom(x))
+        .selectAll("text")
+        .attr("class", "axis-label")
+        .attr("transform", "rotate(-35)")
+        .style("text-anchor", "end");
+
+      svg.append("g").call(d3.axisLeft(y).ticks(5)).attr("class", "axis-label");
+
+      // Line for Health
+      const lineHealth = d3.line()
+        .x(d => x(d.date))
+        .y(d => y(d.health_int))
+        .curve(d3.curveMonotoneX);
+
+      svg.append("path")
+        .datum(data)
+        .attr("class", "line")
+        .attr("stroke", "var(--accent)")
+        .attr("d", lineHealth);
+
+      // Line for Success Rate
+      const lineSuccess = d3.line()
+        .x(d => x(d.date))
+        .y(d => y(d.success_rate))
+        .curve(d3.curveMonotoneX);
+
+      svg.append("path")
+        .datum(data)
+        .attr("class", "line")
+        .attr("stroke", "var(--green)")
+        .attr("stroke-dasharray", "4,4")
+        .attr("d", lineSuccess);
+
+      // Dots
+      svg.selectAll(".dot")
+        .data(data)
+        .enter().append("circle")
+        .attr("cx", d => x(d.date))
+        .attr("cy", d => y(d.health_int))
+        .attr("r", 4)
+        .attr("fill", "var(--accent)");
+    }
+
+    drawCharts();
+    window.addEventListener('resize', () => {
+      d3.select("#main-chart svg").remove();
+      drawCharts();
+    });
+  </script>
+</body>
+</html>

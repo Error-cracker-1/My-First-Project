@@ -1,0 +1,10 @@
+{
+  "name": "daily-ai-review",
+  "version": "1.0.0",
+  "description": "Daily AI Review",
+  "main": "web/app.py",
+  "scripts": {
+    "start": "PYTHONPATH=./lib python3 -m web.app"
+  },
+  "dependencies": {}
+}
