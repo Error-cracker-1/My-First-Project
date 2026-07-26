@@ -1,0 +1,30 @@
+You are an expert Python engineer reviewing a Git repository.
+
+Review ONLY the given Python file.
+
+Filename:
+{filename}
+
+Rules:
+
+- Preserve existing functionality and behavior.
+- Follow PEP 8 style guidance.
+- Improve readability, naming, and structure.
+- Add or improve type hints where useful and safe.
+- Add or improve docstrings where they clarify intent.
+- Fix clear bugs without changing expected behavior.
+- Improve performance when the improvement is simple and safe.
+- Remove unnecessary duplication.
+- Keep imports clean and organized.
+- Do not introduce unnecessary complexity.
+- Never invent new features.
+
+Return ONLY the complete updated file.
+
+Do NOT explain your changes.
+Do NOT use Markdown.
+Do NOT wrap the answer inside triple backticks.
+
+File:
+
+{content}

@@ -1,0 +1,211 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="hero-section">
+  <h1 class="hero-title">Daily AI Review Dashboard</h1>
+  <p class="hero-subtitle">
+    Welcome to your coding workspace companion. Monitor files, analyze repository health, and execute AI-driven quality reviews.
+  </p>
+  
+  <div class="hero-stats-bar">
+    <div class="stat-item">
+      <div class="stat-icon">📁</div>
+      <div class="stat-info">
+        <span class="stat-label">Total Projects</span>
+        <span class="stat-value" id="total_projects">{{ total_projects if total_projects is not none else '0' }}</span>
+      </div>
+    </div>
+    
+    <div class="stat-item">
+      <div class="stat-icon">📅</div>
+      <div class="stat-info">
+        <span class="stat-label">Last Updated</span>
+        <span class="stat-value" id="last_updated">{{ last_updated if last_updated else 'Recently' }}</span>
+      </div>
+    </div>
+    
+    <div class="stat-item">
+      <div class="stat-icon">📄</div>
+      <div class="stat-info">
+        <span class="stat-label">Total Files</span>
+        <span class="stat-value">{{ files_discovered if files_discovered else '0' }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Repository</h3>
+    <p><strong>Name:</strong> {{ repo_name }}</p>
+    <p><strong>Branch:</strong> <span id="branch">{{ branch }}</span></p>
+    <p><strong>Files discovered:</strong> <span id="files_discovered">{{ files_discovered }}</span></p>
+    <p><strong>Last review:</strong> <span id="last_review">{{ last_review or 'never' }}</span></p>
+    <p><strong>Health:</strong> <span id="repo_health">{{ repo_health if repo_health is not none else 'n/a' }}</span>
+        {% if repo_health is not none %}
+        <span class="status-indicator" id="status-indicator" title="{{ 'Healthy' if repo_health >= 0.7 else 'Needs Attention' }}">
+            {{ '✅' if repo_health >= 0.7 else '❗' }}
+        </span>
+        {% endif %}
+    </p>
+    <button id="refresh-stats">Refresh</button>
+  </div>
+
+  <div class="card">
+    <h3>Model Settings</h3>
+    <select id="model-selector">
+      {% for model in available_models %}
+        <option value="{{ model }}" {% if model == state.get('model', 'gemini-2.5-flash') %}selected{% endif %}>{{ model }}</option>
+      {% endfor %}
+    </select>
+    <button id="switch-model-btn" class="btn">Switch Model</button>
+  </div>
+
+  <div class="card">
+    <h3>Quick Actions</h3>
+    <button id="run-modified" class="btn">Run Modified Review</button>
+    <button id="run-all" class="btn">Run Full Repository Review</button>
+    <p style="margin-top: 12px;">
+      <a class="link" href="/dashboard">View Dashboard</a> ·
+      <a class="link" href="/reports">View Reports</a> ·
+      <a class="link" href="/ai_report">View AI_REPORT.md</a>
+    </p>
+  </div>
+
+  <div class="card" id="review-manager-card">
+    <h3>Review Manager</h3>
+    <div id="review-manager-status" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="color: var(--muted); font-weight: 500;">Status:</span>
+        <span id="mgr-status" class="badge badge-idle">Idle</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="color: var(--muted); font-weight: 500;">Mode:</span>
+        <span id="mgr-mode" style="font-weight: 600; color: var(--text);">n/a</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="color: var(--muted); font-weight: 500;">Started:</span>
+        <span id="mgr-started" style="font-size: 0.9rem; color: var(--text);">n/a</span>
+      </div>
+      <div id="mgr-ended-group" style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="color: var(--muted); font-weight: 500;">Ended:</span>
+        <span id="mgr-ended" style="font-size: 0.9rem; color: var(--text);">n/a</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="color: var(--muted); font-weight: 500;">Progress:</span>
+        <span id="mgr-progress" style="font-weight: 700; color: var(--accent);">0%</span>
+      </div>
+    </div>
+    <button id="cancel-review-btn" class="btn btn-danger" style="display: none; width: 100%; margin: 0; padding: 10px;">Stop Current Review</button>
+  </div>
+
+  <div class="card full-width" id="file-changes-card">
+    <h3>📁 Detailed File Changes</h3>
+    <p style="color: var(--muted); margin: -8px 0 16px 0; font-size: 0.9rem;">
+      Which files were changed, what changes were made, and why they were changed.
+    </p>
+    <div id="file-changes-container">
+      {% if file_changes and file_changes|length > 0 %}
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border); text-align: left; font-size: 0.85rem; color: var(--muted);">
+                <th style="padding: 10px;">Which File</th>
+                <th style="padding: 10px;">What Changed</th>
+                <th style="padding: 10px;">Why Changed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for fc in file_changes %}
+                <tr style="border-bottom: 1px solid var(--border); font-size: 0.9rem;">
+                  <td style="padding: 10px;"><code style="background: var(--accent-light, rgba(79, 70, 229, 0.1)); color: var(--accent); padding: 3px 8px; border-radius: 6px;">{{ fc.file }}</code></td>
+                  <td style="padding: 10px;">{{ fc.what }}</td>
+                  <td style="padding: 10px;">{{ fc.why }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p style="color: var(--muted); padding: 8px 0; margin: 0;">No file change details recorded yet. Run a review to generate detailed file change explanations.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card full-width" id="review-history-card">
+    <h3>🕒 Review History</h3>
+    <p style="color: var(--muted); margin: -8px 0 16px 0; font-size: 0.9rem;">
+      List of the 5 most recent review execution timestamps and health scores.
+    </p>
+    <div id="review-history-container">
+      {% if review_history and review_history|length > 0 %}
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          {% for item in review_history %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px;">
+              <div style="display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-weight: 600; font-size: 0.92rem; color: var(--text);">{{ item.timestamp }}</span>
+                {% if item.report_name %}
+                  <span style="font-size: 0.8rem; color: var(--muted);">Report: {{ item.report_name }}</span>
+                {% endif %}
+              </div>
+              <span class="badge" style="background: var(--accent-light, rgba(79, 70, 229, 0.12)); color: var(--accent); font-weight: 700; padding: 6px 14px; border-radius: 20px; font-size: 0.88rem;">
+                Health: {{ item.health }}
+              </span>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p style="color: var(--muted); padding: 8px 0; margin: 0;">No review history recorded yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card full-width">
+    <h3>Project Files</h3>
+
+    <p style="color: var(--muted); margin: -8px 0 16px 0; font-size: 0.9rem;">
+      Click on any filename below to view its contents directly in an interactive modal.
+    </p>
+    <div style="margin-bottom: 16px;">
+      <input type="text" id="file-search-input" style="width: 100%; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border); background-color: var(--bg); color: var(--text); font-size: 0.95rem;" placeholder="🔍 Filter files by name..." autocomplete="off">
+    </div>
+    <div id="files-list-container" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 10px; padding: 12px; background-color: var(--bg); display: flex; flex-direction: column; gap: 8px;">
+      <div style="color: var(--muted); text-align: center; padding: 12px;">Loading repository files...</div>
+    </div>
+  </div>
+
+  <div class="card full-width" id="log-card" style="display:none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;"><h3 style="margin: 0;">Live Review Log</h3><button id="copy-logs-btn" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8em;">Copy Logs</button></div>
+    <!-- Progress Info Container -->
+    <div id="progress-info-container" style="display: none; margin-bottom: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; margin-bottom: 8px; font-weight: 500;">
+        <span id="progress-label" style="color: var(--text);">Preparing AI review...</span>
+        <span id="progress-percentage" style="color: var(--accent); font-weight: 700; background-color: var(--accent-light, rgba(79, 70, 229, 0.1)); padding: 2px 8px; border-radius: 6px;">0%</span>
+      </div>
+      <div id="progress-container" class="progress-container" style="display: block; margin-top: 0; margin-bottom: 0;">
+          <div class="progress-bar" style="width: 0%; transition: width 0.3s ease;"></div>
+      </div>
+    </div>
+    <div id="log" class="log"></div>
+    <div id="status" class="status"></div>
+  </div>
+</div>
+
+<!-- File View Modal Overlay -->
+<div id="file-modal" class="modal-overlay" style="display: none;">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="modal-filename" class="modal-title">File Content</h3>
+      <div class="modal-header-actions">
+        <button id="modal-copy-btn" class="btn btn-secondary small-btn">Copy Content</button>
+        <button id="modal-close-btn" class="btn-close">&times;</button>
+      </div>
+    </div>
+    <div class="modal-meta">
+      <span id="modal-filesize">0 KB</span> &middot; <span id="modal-filemodified">Unknown</span>
+    </div>
+    <div class="modal-body">
+      <pre class="modal-pre"><code id="modal-code-block" class="modal-code"></code></pre>
+    </div>
+  </div>
+</div>
+{% endblock %}

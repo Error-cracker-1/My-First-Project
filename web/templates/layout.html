@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{{ title if title else 'Daily AI Review' }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-left">
+      <a href="/" class="brand">Daily AI Review</a>
+    </div>
+    <div class="nav-right">
+      <a href="/" class="nav-tab {% if active_tab == 'home' %}active{% endif %}">🏠 Home</a>
+      <a href="/dashboard" class="nav-tab {% if active_tab == 'dashboard' %}active{% endif %}">📊 Dashboard</a>
+      <a href="/reports" class="nav-tab {% if active_tab == 'reports' %}active{% endif %}">📁 Reports</a>
+      <a href="/ai_report" class="nav-tab {% if active_tab == 'ai_report' %}active{% endif %}">🤖 AI Report</a>
+      <button type="button" class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme">
+        <span class="theme-icon">🌙</span> <span class="theme-text">Toggle Theme</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
