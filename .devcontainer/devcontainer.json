@@ -2,19 +2,7 @@
     "name": "My First Project",
       "image": "mcr.microsoft.com/devcontainers/universal:2",
 
-                "features": {
-                        "ghcr.io/devcontainers/features/python:1": {
-                                  "version": "3.11"
-                                          },
-                                                  "ghcr.io/devcontainers/features/node:1": {
-                                                                "version": "20"
-                                                                        },
-                                                                                "ghcr.io/devcontainers/features/java:1": {
-                                                                                          "version": "17",
-                                                                                                        "installGradle": true
-                                                                                                                },
-                                "ghcr.io/devcontainers/features/git-lfs:1": {}
-                                                                                                                  },
+                
 
                                                             "forwardPorts": [3000],
 
