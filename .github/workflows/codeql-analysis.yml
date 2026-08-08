@@ -1,0 +1,38 @@
+name: CodeQL
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '.devconatainers/**'
+      - '.vender/**'
+  pull_request:
+    branches: [ master ]
+    paths-ignore:
+      - '.devconatainers/**'
+      - '.vender/**'
+  schedule:
+    - cron: '0 2 * * 0' # weekly scan on Sundays at 02:00 UTC
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: 'python, javascript'
+          config-file: ./.github/codeql/codeql-config.yml
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
