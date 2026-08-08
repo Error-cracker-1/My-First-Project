@@ -1,5 +1,5 @@
+# .github/codeql/codeql-config.yml
+# Prevent CodeQL from scanning the listed folders
 paths-ignore:
-  - '.devcontainer/**'
-  - '.devcontainers/**'
-  - 'vendor/**'
-  - 'vender/**'
+  - '.devconatainers/**'
+  - '.vender/**'
