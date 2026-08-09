@@ -1,11 +1,13 @@
 {
-  "image": "mcr.microsoft.com/devcontainers/universal:2",
   "customizations": {
+    "codespaces": {
+      "openFiles": ["README.md"]
+    },
     "vscode": {
       "extensions": [
         "dracula-theme.theme-dracula",
         "eamodio.gitlens",
-        "elanandkumar.el-vsc-product-icon-theme",
+        "elanandkumar.el-vsc-product-icon-product-icon-theme",
         "esbenp.prettier-vscode",
         "github.codespaces",
         "github.github-vscode-theme",
@@ -20,14 +22,40 @@
         "ms-toolsai.jupyter",
         "ms-toolsai.jupyter-keymap",
         "ms-toolsai.jupyter-renderers",
-        "ms-toolsai.vscode-jupyter-cell-tags",
+        "ms-toolsai.jupyter-cell-tags",
         "ms-toolsai.jupyter-slideshow",
         "ms-vscode.azure-repos",
         "ms-vscode.powershell",
         "ms-vscode.remote-repositories",
         "openai.chatgpt",
         "vscode-icons-team.vscode-icons"
-      ]
+      ],
+      "settings": {
+        "editor.formatOnPaste": true,
+        "editor.formatOnSave": true,
+        "files.autoSave": "afterDelay",
+        "files.insertFinalNewline": true,
+        "files.trimTrailingWhitespace": true,
+        "git.autofetch": true,
+        "git.confirmSync": false,
+        "python.analysis.autoImportCompletions": true,
+        "python.analysis.typeCheckingMode": "basic",
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
     }
-  }
+  },
+  "features": {
+    "ghcr.io/devcontainers-extra/features/gh-cli:1": {},
+    "ghcr.io/devcontainers-extra/features/git-lfs:1": {}
+  },
+  "forwardPorts": [3000],
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "name": "My First Project",
+  "portsAttributes": {
+    "3000": {
+      "label": "My App",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "postCreateCommand": "python -m pip install --upgrade pip && python -m pip install --upgrade -r requirements.txt"
 }
