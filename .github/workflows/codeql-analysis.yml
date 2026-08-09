@@ -3,13 +3,13 @@ on:
   push:
     branches: [ master ]
     paths-ignore:
-      - '.devconatainers/**'
-      - '.vender/**'
+      - '.devcontainers/**'
+      - '.vendor/**'
   pull_request:
     branches: [ master ]
     paths-ignore:
-      - '.devconatainers/**'
-      - '.vender/**'
+      - '.devcontainers/**'
+      - '.vendor/**'
   schedule:
     - cron: '0 2 * * 0' # weekly scan on Sundays at 02:00 UTC
 
