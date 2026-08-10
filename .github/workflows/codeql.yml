@@ -50,7 +50,7 @@ jobs:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
         # Points CodeQL to your custom exclusion configuration file
-        config-file: ./.github/codeql/config.config
+        config-file: ./.github/codeql/config.yml 
 
     - name: Run manual build steps
       if: matrix.build-mode == 'manual'
