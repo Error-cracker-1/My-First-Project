@@ -1,4 +1,5 @@
 name: CodeQL
+
 on:
   push:
     branches: [ master, feature-1 ]
@@ -21,6 +22,7 @@ jobs:
       actions: read
       contents: read
       security-events: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,10 +30,8 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: 'python, javascript'
+          languages: 'python,javascript'
+          config-file: .github/codeql/config.yml
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-
-      - name: Perform CodeQL analysis
+      - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
