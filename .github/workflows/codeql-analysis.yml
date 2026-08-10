@@ -1,18 +1,18 @@
-name: CodeQL
+name: "CodeQL"
 
 on:
   push:
-    branches: [ master, feature-1 ]
+    branches: [ "master", "feature-1" ]
     paths-ignore:
       - '.devcontainers/**'
       - '.vendor/**'
   pull_request:
-    branches: [ master, feature-1 ]
+    branches: [ "master", "feature-1" ]
     paths-ignore:
       - '.devcontainers/**'
       - '.vendor/**'
   schedule:
-    - cron: '0 2 * * 0' # weekly scan on Sundays at 02:00 UTC
+    - cron: '0 2 * * 0'
 
 jobs:
   analyze:
@@ -23,15 +23,27 @@ jobs:
       contents: read
       security-events: write
 
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript', 'python' ] # Adjust languages according to your repository
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: 'python,javascript'
-          config-file: .github/codeql/config.yml
+    # Initializes the CodeQL tools and links your custom config file
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        # Points to your custom exclusions config file
+        config-file: ./.github/codeql/config.config
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+    # Autobuild attempts to build any compiled languages (C/C++, C#, Go, Java, etc.)
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+
+    # Performs the actual analysis and uploads SARIF results
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
