@@ -38,7 +38,7 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         # Points to your custom exclusions config file
-        config-file: ./.github/codeql/config.config
+        config-file: ./.github/codeql/config.yml
 
     # Autobuild attempts to build any compiled languages (C/C++, C#, Go, Java, etc.)
     - name: Autobuild
