@@ -47,3 +47,4 @@ lib/
 package.json.bak
 metadata.json.bak
 *.bak
+vendor
