@@ -1,0 +1,191 @@
+name: Code Coverage Agent
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**'
+      - '.gitignore'
+      - 'LICENSE*'
+  workflow_dispatch:
+    inputs:
+      enable_copilot:
+        description: Allow one bounded Copilot CLI test-improvement request
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  copilot-requests: write
+
+concurrency:
+  group: coverage-agent-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    outputs:
+      initial: ${{ steps.coverage.outputs.initial }}
+      final: ${{ steps.coverage.outputs.final }}
+      ai_used: ${{ steps.final.outputs.ai_used }}
+      tests: ${{ steps.final.outputs.tests }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect project and changed source
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='${{ github.event.pull_request.base.sha }}'
+          [ -n "$base" ] || base="$(git rev-parse HEAD^)"
+          git diff --name-only "$base" HEAD | grep -Ev '(^|/)(vendor|node_modules|\.venv|\.git|build|dist|coverage|\.cache|__pycache__|target|generated)(/|$)' > "$RUNNER_TEMP/changed.txt" || true
+          if [ '${{ github.event_name }}' = pull_request ] && [ ! -s "$RUNNER_TEMP/changed.txt" ]; then echo 'testable=false' >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo 'testable=true' >> "$GITHUB_OUTPUT"
+          if [ -f requirements.txt ] || [ -f pyproject.toml ] || [ -f setup.py ] || [ -f setup.cfg ]; then echo python >> "$GITHUB_OUTPUT"; fi
+          if [ -f package.json ]; then echo node >> "$GITHUB_OUTPUT"; fi
+          if [ -f go.mod ]; then echo go >> "$GITHUB_OUTPUT"; fi
+          if [ -f Cargo.toml ]; then echo rust >> "$GITHUB_OUTPUT"; fi
+
+      - name: Set up Python
+        if: steps.detect.outputs.testable == 'true' && steps.detect.outputs.python == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+          cache: pip
+
+      - name: Run deterministic tests and collect coverage
+        if: steps.detect.outputs.testable == 'true'
+        id: test
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$RUNNER_TEMP/coverage-agent"
+          : > "$RUNNER_TEMP/coverage-agent/tests.txt"
+          status=0
+          if [ '${{ steps.detect.outputs.python }}' = python ]; then
+            if [ -f requirements.txt ]; then python -m pip install --disable-pip-version-check -r requirements.txt; fi
+            if [ -f pyproject.toml ] || [ -f setup.py ] || [ -f setup.cfg ]; then python -m pip install --disable-pip-version-check .; fi
+            python -m pip install --disable-pip-version-check coverage pytest
+            if find . -path './.git' -prune -o -path '*/vendor' -prune -o -path '*/.venv' -prune -o -type f \( -name 'test_*.py' -o -name '*_test.py' \) -print -quit | grep -q .; then
+              echo 'python -m coverage run -m pytest' >> "$RUNNER_TEMP/coverage-agent/tests.txt"
+              python -m coverage run -m pytest || status=1
+            else
+              echo 'python -m coverage run -m unittest discover' >> "$RUNNER_TEMP/coverage-agent/tests.txt"
+              python -m coverage run -m unittest discover || status=1
+            fi
+            python -m coverage json -o "$RUNNER_TEMP/coverage-agent/python.json" || true
+          fi
+          if [ '${{ steps.detect.outputs.node }}' = node ] && node -e "const p=require('./package.json'); process.exit(p.scripts?.test ? 0 : 1)"; then
+            if [ -f package-lock.json ]; then npm ci --ignore-scripts; elif [ -f yarn.lock ]; then corepack yarn install --immutable --ignore-scripts; elif [ -f pnpm-lock.yaml ]; then corepack pnpm install --frozen-lockfile --ignore-scripts; else npm install --ignore-scripts; fi
+            echo 'npm test -- --coverage' >> "$RUNNER_TEMP/coverage-agent/tests.txt"
+            npm test -- --coverage || status=1
+          fi
+          if [ '${{ steps.detect.outputs.go }}' = go ]; then echo 'go test ./... -coverprofile=coverage.out' >> "$RUNNER_TEMP/coverage-agent/tests.txt"; go test ./... -coverprofile="$RUNNER_TEMP/coverage-agent/coverage.out" || status=1; fi
+          if [ '${{ steps.detect.outputs.rust }}' = rust ] && cargo llvm-cov --version >/dev/null 2>&1; then echo 'cargo llvm-cov --lcov' >> "$RUNNER_TEMP/coverage-agent/tests.txt"; cargo llvm-cov --lcov --output-path "$RUNNER_TEMP/coverage-agent/lcov.info" || status=1; fi
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Select one meaningful coverage target
+        if: steps.detect.outputs.testable == 'true'
+        id: coverage
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'coverage-agent'
+          covered=missed=0; targets=[]
+          p=root/'python.json'
+          if p.exists():
+            d=json.loads(p.read_text())
+            for name,item in d.get('files',{}).items():
+              if any('/'+x+'/' in '/'+name.replace('\\','/')+'/' for x in ('vendor','node_modules','.venv','.git','build','dist','coverage','generated')): continue
+              s=item.get('summary',{}); c=s.get('covered_lines',0); m=s.get('missing_lines',0); covered+=c; missed+=m
+              if m: targets.append((m,name))
+          targets.sort(reverse=True)
+          initial=round(100*covered/(covered+missed),2) if covered+missed else 'n/a'
+          (root/'report.md').write_text('# Coverage agent report\n\nInitial coverage: **%s**\n\n%s\n' % (initial, '\n'.join('- `%s`: %s uncovered lines' % (n,m) for m,n in targets[:3]) or 'No parseable coverage target.'))
+          print('initial='+str(initial))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f: f.write('initial=%s\nfinal=%s\n' % (initial,initial))
+          PY
+          cat "$RUNNER_TEMP/coverage-agent/report.md"
+
+      - name: Decide whether Copilot is allowed
+        id: policy
+        if: steps.detect.outputs.testable == 'true'
+        shell: bash
+        run: |
+          allowed=false
+          if [ '${{ github.event_name }}' = workflow_dispatch ] && [ '${{ inputs.enable_copilot }}' = true ]; then allowed=true; fi
+          if [ '${{ github.event_name }}' = pull_request ] && [ '${{ contains(github.event.pull_request.labels.*.name, 'coverage-agent') }}' = true ] && [ '${{ github.event.pull_request.head.repo.fork }}' = false ]; then allowed=true; fi
+          echo "allowed=$allowed" >> "$GITHUB_OUTPUT"
+
+      - name: Ask Copilot CLI once for a test-only unified diff
+        id: copilot
+        if: steps.policy.outputs.allowed == 'true'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global @github/copilot
+          target=$(sed -n 's/^- `\([^`]*\)`.*/\1/p' "$RUNNER_TEMP/coverage-agent/report.md" | head -1)
+          [ -n "$target" ] || exit 0
+          { cat .github/copilot-instructions.md; printf '\nSelected source target: %s\n' "$target"; sed -n '1,220p' "$target"; printf '\nReturn only a unified diff for one test/spec file. Do not execute commands, inspect the repository, or write files.\n'; } > "$RUNNER_TEMP/copilot-prompt.md"
+          mkdir -p "$RUNNER_TEMP/copilot-sandbox"
+          (cd "$RUNNER_TEMP/copilot-sandbox" && copilot -p "$(cat "$RUNNER_TEMP/copilot-prompt.md")") > "$RUNNER_TEMP/copilot.patch"
+          test -s "$RUNNER_TEMP/copilot.patch"
+          git apply --check "$RUNNER_TEMP/copilot.patch"
+          changed=$(git apply --numstat "$RUNNER_TEMP/copilot.patch" | cut -f3)
+          printf '%s\n' "$changed" | grep -Eq '(^|/)(test[^/]*|tests|spec[^/]*)\.(py|js|jsx|ts|tsx|java|kt|go|rs|cs|cpp|c|h|php|rb|swift)$'
+          ! printf '%s\n' "$changed" | grep -Eq '(^|/)(\.github|vendor|node_modules|\.venv|\.git|build|dist|coverage|generated)(/|$)|(^|/)(package(-lock)?\.json|yarn\.lock|pnpm-lock\.yaml|requirements.*\.txt|pyproject\.toml|Cargo\.toml|go\.mod|pom\.xml|build\.gradle(\.kts)?)$'
+          git apply "$RUNNER_TEMP/copilot.patch"
+          echo 'applied=true' >> "$GITHUB_OUTPUT"
+
+      - name: Re-run tests once after accepted AI patch
+        if: steps.copilot.outputs.applied == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ '${{ steps.detect.outputs.python }}' = python ]; then python -m coverage erase; python -m coverage run -m pytest || python -m coverage run -m unittest discover; python -m coverage json -o "$RUNNER_TEMP/coverage-agent/python.json"; fi
+          if [ '${{ steps.detect.outputs.node }}' = node ]; then npm test -- --coverage; fi
+          if [ '${{ steps.detect.outputs.go }}' = go ]; then go test ./... -coverprofile="$RUNNER_TEMP/coverage-agent/coverage.out"; fi
+
+      - name: Finalize report
+        id: final
+        if: always() && steps.detect.outputs.testable == 'true'
+        shell: bash
+        run: |
+          ai_used=false; [ '${{ steps.copilot.outcome }}' = success ] && ai_used=true
+          tests=$(tr '\n' ';' < "$RUNNER_TEMP/coverage-agent/tests.txt" | sed 's/;$//'); [ -n "$tests" ] || tests='none discovered'
+          echo "ai_used=$ai_used" >> "$GITHUB_OUTPUT"
+          echo "tests=$tests" >> "$GITHUB_OUTPUT"
+          echo 'The workflow never commits or pushes AI changes.' >> "$RUNNER_TEMP/coverage-agent/report.md"
+
+      - name: Upload coverage report
+        if: always() && steps.detect.outputs.testable == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-agent-report
+          path: ${{ runner.temp }}/coverage-agent
+          if-no-files-found: ignore
+
+  report:
+    needs: coverage
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false && always()
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `## Code Coverage Agent\n\n- Tests/coverage commands: \`${{ needs.coverage.outputs.tests || 'none discovered' }}\`\n- Initial coverage: **${{ needs.coverage.outputs.initial || 'n/a' }}**\n- Final coverage: **${{ needs.coverage.outputs.final || 'n/a' }}**\n- AI used: **${{ needs.coverage.outputs.ai_used || 'false' }}**\n\nAI changes are never committed or pushed by this workflow.`;
+            await github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number, body});
