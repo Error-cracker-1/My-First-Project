@@ -43,55 +43,130 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-          import os, subprocess
+          import os
+          import subprocess
           from pathlib import Path
           from google import genai
 
           root = Path('.').resolve()
           readme = root / 'README.md'
           instructions = root / '.github' / 'readme-generator-instructions.md'
-          excluded_dirs = {'.git','.github','.venv','node_modules','vendor','build','dist','coverage','__pycache__','.cache','target','out','generated'}
-          excluded_files = {'README.md','AI_CHANGELOG.md','Requirements.txt','requirements.txt'}
-          allowed_extensions = {'.py','.html','.css','.js','.ts','.jsx','.tsx','.md','.txt','.ps1','.ipynb','.json','.yml','.yaml'}
 
-          def excluded(path): return any(part in excluded_dirs for part in path.parts)
+          excluded_dirs = {
+              '.git', '.github', '.venv', 'node_modules', 'vendor', 'build',
+              'dist', 'coverage', '__pycache__', '.cache', 'target', 'out', 'generated'
+          }
+          excluded_files = {
+              'README.md', 'AI_CHANGELOG.md', 'Requirements.txt', 'requirements.txt'
+          }
+          allowed_extensions = {
+              '.py', '.html', '.css', '.js', '.ts', '.jsx', '.tsx', '.md', '.txt',
+              '.ps1', '.ipynb', '.json', '.yml', '.yaml'
+          }
+
+          def is_excluded(path):
+              return any(part in excluded_dirs for part in path.parts)
+
           def read_text(path, limit):
-              try: return path.read_text(encoding='utf-8', errors='ignore')[:limit]
-              except Exception: return ''
+              try:
+                  return path.read_text(encoding='utf-8', errors='ignore')[:limit]
+              except Exception:
+                  return ''
 
-          files=[]
+          files = []
           for path in root.rglob('*'):
-              if path.is_file():
-                  rel=path.relative_to(root)
-                  if not excluded(rel) and path.name not in excluded_files and path.suffix.lower() in allowed_extensions:
-                      files.append(rel.as_posix())
+              if not path.is_file():
+                  continue
+              relative = path.relative_to(root)
+              if is_excluded(relative):
+                  continue
+              if path.name in excluded_files:
+                  continue
+              if path.suffix.lower() not in allowed_extensions:
+                  continue
+              files.append(relative.as_posix())
           files.sort()
 
           try:
-              diff=subprocess.run(['git','diff','HEAD^','HEAD','--','.',':!README.md'],capture_output=True,text=True,timeout=30).stdout[:20000]
-          except Exception: diff=''
+              diff = subprocess.run(
+                  ['git', 'diff', 'HEAD^', 'HEAD', '--', '.', ':!README.md'],
+                  capture_output=True, text=True, timeout=30, check=False
+              ).stdout[:20000]
+          except Exception:
+              diff = ''
+
           try:
-              recent_log=subprocess.run(['git','log','-8','--oneline','--decorate'],capture_output=True,text=True,timeout=30).stdout
-          except Exception: recent_log=''
+              recent_log = subprocess.run(
+                  ['git', 'log', '-8', '--oneline', '--decorate'],
+                  capture_output=True, text=True, timeout=30, check=False
+              ).stdout
+          except Exception:
+              recent_log = ''
 
-          manifests=[]
-          for name in ['requirements.txt','Requirements.txt','pyproject.toml','package.json','Cargo.toml','go.mod','pom.xml','build.gradle','build.gradle.kts']:
-              p=root/name
-              if p.exists(): manifests.append(f'\n--- {name} ---\n{read_text(p,10000)}')
+          manifests = []
+          for name in [
+              'requirements.txt', 'Requirements.txt', 'pyproject.toml', 'package.json',
+              'Cargo.toml', 'go.mod', 'pom.xml', 'build.gradle', 'build.gradle.kts'
+          ]:
+              path = root / name
+              if path.exists() and path.is_file():
+                  manifests.append(f'\n--- {name} ---\n{read_text(path, 10000)}')
 
-          prompt=f'''You are the README maintenance agent for Error-cracker-1/My-First-Project.\n\nFollow these repository instructions:\n{read_text(instructions,12000)}\n\nCURRENT README:\n{read_text(readme,30000)}\n\nREPOSITORY FILE LIST:\n{chr(10).join(files[:300])}\n\nPROJECT MANIFESTS:\n{''.join(manifests)}\n\nRECENT COMMITS:\n{recent_log}\n\nRECENT CHANGES:\n{diff}\n\nUpdate README.md using only verified information above. Preserve useful existing documentation. Do not invent features, commands, dependencies, URLs, technologies, files, workflows, or deployment systems. Keep valid existing Actions and Pages badges. Return ONLY the complete updated README.md contents, without a code fence.'''
+          manifest_text = ''.join(manifests)
+          file_text = '\n'.join(files[:300])
+          instruction_text = read_text(instructions, 12000)
+          current_readme = read_text(readme, 30000)
 
-          key=os.environ.get('GOOGLE_API_KEY')
-          if not key: raise SystemExit('GOOGLE_API_KEY is not configured in GitHub Secrets.')
-          client=genai.Client(api_key=key)
-          response=client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
-          generated=(response.text or '').strip()
-          if generated.startswith('```markdown'): generated=generated[len('```markdown'):].strip()
-          elif generated.startswith('```md'): generated=generated[len('```md'):].strip()
-          elif generated.startswith('```'): generated=generated[3:].strip()
-          if generated.endswith('```'): generated=generated[:-3].rstrip()
-          if len(generated)<300: raise SystemExit('Generated README is suspiciously short; refusing to replace README.')
-          readme.write_text(generated+'\n',encoding='utf-8')
+          prompt = f'''You are the README maintenance agent for Error-cracker-1/My-First-Project.
+
+Follow these repository instructions:
+{instruction_text}
+
+CURRENT README:
+{current_readme}
+
+REPOSITORY FILE LIST:
+{file_text}
+
+PROJECT MANIFESTS:
+{manifest_text}
+
+RECENT COMMITS:
+{recent_log}
+
+RECENT CHANGES:
+{diff}
+
+Update README.md using only verified information above. Preserve useful existing documentation.
+Do not invent features, commands, dependencies, URLs, technologies, files, workflows, or deployment systems.
+Keep valid GitHub Actions and GitHub Pages badges.
+Return ONLY the complete updated README.md contents, without a code fence.'''
+
+          api_key = os.environ.get('GOOGLE_API_KEY')
+          if not api_key:
+              raise SystemExit('GOOGLE_API_KEY is not configured in GitHub Secrets.')
+
+          client = genai.Client(api_key=api_key)
+          response = client.models.generate_content(
+              model='gemini-2.5-flash',
+              contents=prompt,
+          )
+
+          generated = (response.text or '').strip()
+          for fence in ('```markdown', '```md', '```'):
+              if generated.startswith(fence):
+                  generated = generated[len(fence):].strip()
+                  break
+          if generated.endswith('```'):
+              generated = generated[:-3].rstrip()
+
+          if len(generated) < 300:
+              raise SystemExit(
+                  'Generated README is suspiciously short; refusing to replace README.'
+              )
+
+          readme.write_text(generated + '\n', encoding='utf-8')
+          print('README generated successfully.')
           PY
 
       - name: Validate README change
@@ -100,7 +175,10 @@ jobs:
           set -euo pipefail
           changed="$(git diff --name-only)"
           if [ -n "$changed" ] && [ "$changed" != "README.md" ]; then
-            echo "ERROR: Files other than README.md changed:"; echo "$changed"; git checkout -- .; exit 1
+            echo "ERROR: Files other than README.md changed:"
+            echo "$changed"
+            git checkout -- .
+            exit 1
           fi
           test -s README.md
 
@@ -108,7 +186,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- README.md; then echo 'README is already up to date.'; exit 0; fi
+          if git diff --quiet -- README.md; then
+            echo 'README is already up to date.'
+            exit 0
+          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add README.md
