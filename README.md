@@ -2,7 +2,15 @@
 
 A beginner-friendly practice repository for learning HTML, CSS, JavaScript, Python, PowerShell, and Jupyter Notebook through small, runnable projects.
 
-This repository features a published GitHub Pages site, browser projects, Python practice scripts, PowerShell utilities, and Jupyter notebooks, including Tkinter-based applications. A key highlight is a multifunction scientific calculator, available as both a standalone Python Tkinter application and within a Jupyter notebook. This calculator offers a graphical interface, input validation, standard arithmetic operations, powers, square roots, clear controls, and a support link to the project repository.
+## GitHub Actions
+
+[![AI Review](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-review.yml/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-review.yml)
+
+[![Code Coverage Agent](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/code-coverage-agent.yml/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/code-coverage-agent.yml)
+
+[![CodeQL](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml)
+
+[![pages-build-deployment](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment)
 
 ## Live Website
 
