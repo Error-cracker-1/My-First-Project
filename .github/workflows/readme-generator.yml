@@ -39,6 +39,7 @@ jobs:
       - name: Generate README with Gemini
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          BEFORE_SHA: ${{ github.event.before }}
         shell: bash
         run: |
           set -euo pipefail
@@ -61,6 +62,10 @@ jobs:
               except OSError:
                   return ''
 
+          def git_output(args):
+              result = subprocess.run(['git', *args], capture_output=True, text=True, timeout=30, check=False)
+              return result.stdout.strip()
+
           files = []
           for path in root.rglob('*'):
               if not path.is_file():
@@ -72,16 +77,10 @@ jobs:
                   files.append(relative.as_posix())
           files.sort()
 
-          def git_output(args):
-              result = subprocess.run(['git', *args], capture_output=True, text=True, timeout=30, check=False)
-              return result.stdout.strip()
-
-          recent_log = git_output(['log','-8','--oneline','--decorate'])
-          before = os.environ.get('GITHUB_EVENT_BEFORE', '')
+          before = os.environ.get('BEFORE_SHA', '')
           sha = os.environ.get('GITHUB_SHA', 'HEAD')
-          diff = git_output(['diff', before, sha, '--', '.', ':!README.md']) if before and before != '0'*40 else git_output(['diff','HEAD^','HEAD','--','.',':!README.md'])
+          diff = git_output(['diff', before, sha, '--', '.', ':!README.md']) if before and before != '0'*40 else git_output(['diff', 'HEAD^', 'HEAD', '--', '.', ':!README.md'])
           diff = diff[:20000]
-
           manifests = []
           for name in ['requirements.txt','Requirements.txt','pyproject.toml','package.json','Cargo.toml','go.mod','pom.xml','build.gradle','build.gradle.kts']:
               path = root / name
@@ -90,7 +89,7 @@ jobs:
 
           prompt = f'''You are the README maintenance agent for this repository.
 
-Follow these instructions exactly:
+Follow these repository instructions:
 {read_text(instructions,12000)}
 
 CURRENT README:
@@ -103,12 +102,14 @@ PROJECT MANIFESTS:
 {chr(10).join(manifests)}
 
 RECENT COMMITS:
-{recent_log}
+{git_output(['log','-8','--oneline','--decorate'])}
 
 CHANGES SINCE THE TRIGGERING COMMIT:
 {diff}
 
-Generate the complete updated README.md. Use only verified information supplied above. Preserve useful existing content and valid badges. Do not invent anything. Return ONLY the README contents, with no Markdown fence and no explanation.'''
+Generate the complete updated README.md using only verified repository information.
+Preserve useful existing content and valid badges. Do not invent anything.
+Return ONLY the README contents, with no Markdown fence and no explanation.'''
 
           api_key = os.environ.get('GOOGLE_API_KEY')
           if not api_key:
@@ -116,9 +117,10 @@ Generate the complete updated README.md. Use only verified information supplied 
           response = genai.Client(api_key=api_key).models.generate_content(model='gemini-2.5-flash', contents=prompt)
           generated = (response.text or '').strip()
           if generated.startswith('```'):
-              generated = generated.split('\n',1)[1] if '\n' in generated else ''
-              if generated.endswith('```'):
-                  generated = generated[:-3].rstrip()
+              lines = generated.splitlines()[1:]
+              if lines and lines[-1].strip() == '```':
+                  lines = lines[:-1]
+              generated = '\n'.join(lines).strip()
           if len(generated) < 300:
               raise SystemExit('Generated README is suspiciously short; refusing to replace README.')
           readme.write_text(generated + '\n', encoding='utf-8')
