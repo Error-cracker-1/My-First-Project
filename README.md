@@ -32,7 +32,7 @@ This repository combines learning exercises with a functional web application. I
 | `Powershell/` | Contains PowerShell practice scripts (`Test 1.ps1`, `Test 2.ps1`, `Test.ps1`). |
 | `prompts/` | Text files containing prompts for the AI review system. |
 | `Python/` | Contains various Python practice scripts and a Tkinter calculator. |
-| `Requirements.txt` | Python and Jupyter dependencies for the project. |
+| `requirements.txt` | Python and Jupyter dependencies for the project. |
 | `scripts/` | Backend Python scripts supporting the AI review application. |
 | `Web 1/Web.html` | Original Web 1 HTML experiment. |
 | `web/` | Python Flask web application for daily AI reviews. |
@@ -141,7 +141,7 @@ python "Python\MultiFunctional Calculator.py"
 Install the Python dependencies, then start Jupyter:
 
 ```bash
-pip install -r Requirements.txt
+pip install -r requirements.txt
 jupyter notebook
 ```
 
@@ -159,7 +159,7 @@ powershell -ExecutionPolicy Bypass -File "Powershell\Test.ps1"
 
 1.  **Install Python dependencies:**
     ```bash
-    pip install -r Requirements.txt
+    pip install -r requirements.txt
     ```
 2.  **Start the Flask application:**
     ```bash
@@ -191,4 +191,4 @@ This repository is useful for practicing:
 - The `docs` folder hosts the public GitHub Pages version of the site, including browser projects and the AI review dashboard.
 - The Pong game is currently the most substantial browser project in the repository.
 - The Jupyter notebook utilizes Tkinter, meaning that GUI examples should be run in a desktop Python environment.
-- The "Daily AI Review" application is a more advanced project compared to the beginner exercises and requires Python dependencies listed in `Requirements.txt`.
+- The "Daily AI Review" application is a more advanced project compared to the beginner exercises and requires Python dependencies listed in `requirements.txt`.
