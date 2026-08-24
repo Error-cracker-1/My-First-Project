@@ -12,6 +12,8 @@ A repository combining beginner-friendly coding projects with an AI-powered code
 
 [![pages-build-deployment](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment)
 
+[![README Generator](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml)
+
 ## Live Website
 
 This repository is hosted with GitHub Pages:
