@@ -43,43 +43,90 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-          import os, subprocess
+          import os
+          import subprocess
           from pathlib import Path
           from google import genai
 
-          root=Path('.').resolve(); readme=root/'README.md'; instructions=root/'.github/readme-generator-instructions.md'
-          excluded={'.git','.github','.venv','node_modules','vendor','build','dist','coverage','__pycache__','.cache','target','out','generated'}
-          excluded_files={'README.md','AI_CHANGELOG.md','Requirements.txt','requirements.txt'}
-          allowed={'.py','.html','.css','.js','.ts','.jsx','.tsx','.md','.txt','.ps1','.ipynb','.json','.yml','.yaml'}
-          def excluded_path(p): return any(x in excluded for x in p.parts)
-          def text(p,n):
-              try: return p.read_text(encoding='utf-8',errors='ignore')[:n]
-              except Exception: return ''
-          files=[]
-          for p in root.rglob('*'):
-              if p.is_file():
-                  r=p.relative_to(root)
-                  if not excluded_path(r) and p.name not in excluded_files and p.suffix.lower() in allowed: files.append(r.as_posix())
+          root = Path('.').resolve()
+          readme = root / 'README.md'
+          instructions = root / '.github' / 'readme-generator-instructions.md'
+          excluded_dirs = {'.git','.github','.venv','node_modules','vendor','build','dist','coverage','__pycache__','.cache','target','out','generated'}
+          excluded_files = {'README.md','AI_CHANGELOG.md','Requirements.txt','requirements.txt'}
+          allowed_extensions = {'.py','.html','.css','.js','.ts','.jsx','.tsx','.md','.txt','.ps1','.ipynb','.json','.yml','.yaml'}
+
+          def is_excluded(path):
+              return any(part in excluded_dirs for part in path.parts)
+
+          def read_text(path, limit):
+              try:
+                  return path.read_text(encoding='utf-8', errors='ignore')[:limit]
+              except Exception:
+                  return ''
+
+          files = []
+          for path in root.rglob('*'):
+              if not path.is_file():
+                  continue
+              relative = path.relative_to(root)
+              if is_excluded(relative) or path.name in excluded_files:
+                  continue
+              if path.suffix.lower() in allowed_extensions:
+                  files.append(relative.as_posix())
           files.sort()
-          try: diff=subprocess.run(['git','diff','HEAD^','HEAD','--','.',':!README.md'],capture_output=True,text=True,timeout=30).stdout[:20000]
-          except Exception: diff=''
-          try: log=subprocess.run(['git','log','-8','--oneline','--decorate'],capture_output=True,text=True,timeout=30).stdout
-          except Exception: log=''
-          manifests=[]
-          for n in ['requirements.txt','Requirements.txt','pyproject.toml','package.json','Cargo.toml','go.mod','pom.xml','build.gradle','build.gradle.kts']:
-              p=root/n
-              if p.exists(): manifests.append(f'\n--- {n} ---\n{text(p,10000)}')
-          prompt=f'''You are the README maintenance agent for Error-cracker-1/My-First-Project.\n\nInstructions:\n{text(instructions,12000)}\n\nCURRENT README:\n{text(readme,30000)}\n\nFILES:\n{chr(10).join(files[:300])}\n\nMANIFESTS:\n{''.join(manifests)}\n\nRECENT COMMITS:\n{log}\n\nRECENT CHANGES:\n{diff}\n\nUpdate README.md using only verified information above. Preserve useful content. Do not invent anything. Keep valid Actions and Pages badges. Return ONLY the complete README.md without a code fence.'''
-          key=os.environ.get('GOOGLE_API_KEY')
-          if not key: raise SystemExit('GOOGLE_API_KEY is not configured in GitHub Secrets.')
-          response=genai.Client(api_key=key).models.generate_content(model='gemini-2.5-flash',contents=prompt)
-          out=(response.text or '').strip()
-          if out.startswith('```markdown'): out=out[len('```markdown'):].strip()
-          elif out.startswith('```md'): out=out[len('```md'):].strip()
-          elif out.startswith('```'): out=out[3:].strip()
-          if out.endswith('```'): out=out[:-3].rstrip()
-          if len(out)<300: raise SystemExit('Generated README is suspiciously short; refusing to replace README.')
-          readme.write_text(out+'\n',encoding='utf-8')
+
+          try:
+              diff = subprocess.run(['git','diff','HEAD^','HEAD','--','.',':!README.md'], capture_output=True, text=True, timeout=30, check=False).stdout[:20000]
+          except Exception:
+              diff = ''
+          try:
+              recent_log = subprocess.run(['git','log','-8','--oneline','--decorate'], capture_output=True, text=True, timeout=30, check=False).stdout
+          except Exception:
+              recent_log = ''
+
+          manifests = []
+          for name in ['requirements.txt','Requirements.txt','pyproject.toml','package.json','Cargo.toml','go.mod','pom.xml','build.gradle','build.gradle.kts']:
+              path = root / name
+              if path.exists() and path.is_file():
+                  manifests.append(f'\n--- {name} ---\n{read_text(path,10000)}')
+
+          prompt = f'''You are the README maintenance agent for Error-cracker-1/My-First-Project.
+
+Follow these repository instructions:
+{read_text(instructions,12000)}
+
+CURRENT README:
+{read_text(readme,30000)}
+
+REPOSITORY FILE LIST:
+{chr(10).join(files[:300])}
+
+PROJECT MANIFESTS:
+{''.join(manifests)}
+
+RECENT COMMITS:
+{recent_log}
+
+RECENT CHANGES:
+{diff}
+
+Update README.md using only verified information above. Preserve useful existing documentation. Do not invent features, commands, dependencies, URLs, technologies, files, workflows, or deployment systems. Keep valid GitHub Actions and GitHub Pages badges. Return ONLY the complete updated README.md contents, without a code fence.'''
+
+          api_key = os.environ.get('GOOGLE_API_KEY')
+          if not api_key:
+              raise SystemExit('GOOGLE_API_KEY is not configured in GitHub Secrets.')
+          response = genai.Client(api_key=api_key).models.generate_content(model='gemini-2.5-flash', contents=prompt)
+          generated = (response.text or '').strip()
+          for fence in ('```markdown','```md','```'):
+              if generated.startswith(fence):
+                  generated = generated[len(fence):].strip()
+                  break
+          if generated.endswith('```'):
+              generated = generated[:-3].rstrip()
+          if len(generated) < 300:
+              raise SystemExit('Generated README is suspiciously short; refusing to replace README.')
+          readme.write_text(generated + '\n', encoding='utf-8')
+          print('README generated successfully.')
           PY
 
       - name: Validate README change
@@ -87,14 +134,22 @@ jobs:
         run: |
           set -euo pipefail
           changed="$(git diff --name-only)"
-          if [ -n "$changed" ] && [ "$changed" != "README.md" ]; then echo "$changed"; git checkout -- .; exit 1; fi
+          if [ -n "$changed" ] && [ "$changed" != "README.md" ]; then
+            echo "ERROR: Files other than README.md changed:"
+            echo "$changed"
+            git checkout -- .
+            exit 1
+          fi
           test -s README.md
 
       - name: Commit README if changed
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- README.md; then echo 'README is already up to date.'; exit 0; fi
+          if git diff --quiet -- README.md; then
+            echo 'README is already up to date.'
+            exit 0
+          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add README.md
