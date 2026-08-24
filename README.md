@@ -1,6 +1,6 @@
-# My First Project: Beginner Coding Projects
+# My First Project: Beginner Coding Projects and AI Review Application
 
-A beginner-friendly practice repository for learning HTML, CSS, JavaScript, Python, PowerShell, and Jupyter Notebook through small, runnable projects.
+This repository serves as a versatile learning environment, combining beginner-friendly projects in HTML, CSS, JavaScript, Python, PowerShell, and Jupyter Notebook, with a more advanced Python Flask web application for daily AI code reviews.
 
 ## GitHub Actions
 
@@ -18,39 +18,40 @@ This repository is hosted with GitHub Pages:
 
 https://error-cracker-1.github.io/My-First-Project/
 
-The hosted site is served from the `docs` folder, with `docs/index.html` as the entry point.
+The hosted site is served from the `docs` folder, with `docs/index.html` as the entry point, providing links to browser projects and a dashboard for AI review reports.
 
 ## Overview
 
-This repository combines learning exercises with small experiments. The GitHub Pages site serves as a landing page for browser projects, while the repository also maintains original project folders and beginner scripting practice files.
+This repository combines learning exercises with a functional web application. It features beginner-friendly HTML, CSS, JavaScript, Python, PowerShell, and Jupyter Notebook projects, alongside a Python Flask web application designed for daily AI code reviews. The GitHub Pages site serves as a landing page for browser projects and an AI review dashboard, while the repository also maintains original project folders and scripting practice files.
 
 ## Repository Contents
 
 | Path | Description |
-| --- | --- |
+|---|---|
+| `.devcontainer/` | Configuration for a development container. |
+| `AI_REPORT.md` | Generated AI review reports. |
+| `app/applet/` | Contains files for a daily AI review applet, including `package.json` and `metadata.json`. |
 | `docs/Game Pong/Game 1.html` | Hosted copy of the Pong game. |
-| `docs/google83549bbb7ae16ebb.html` | Google Site Verification file. |
-| `docs/index.html` | Main GitHub Pages landing page with links to the hosted projects. |
-| `docs/robots.txt` | Robots Exclusion Protocol (REP) file for web crawlers. |
-| `docs/sitemap.xml` | XML sitemap for search engine indexing. |
-| `docs/styles.css` | Stylesheet for the GitHub Pages landing page. |
-| `docs/Web 1/styles.css` | Stylesheet for the hosted Web 1 page. |
 | `docs/Web 1/Web.html` | Hosted copy of the Web 1 page. |
+| `docs/Web 1/styles.css` | Stylesheet for the hosted Web 1 page. |
+| `docs/dashboard.html` | Hosted dashboard for AI review reports. |
+| `docs/google83549bbb7ae16ebb.html` | Google Site Verification file. |
+| `docs/index.html` | Main GitHub Pages landing page. |
+| `docs/robots.txt` | Robots Exclusion Protocol (REP) file. |
+| `docs/styles.css` | Stylesheet for the GitHub Pages landing page. |
 | `Game Pong/Game 1.html` | Original browser-based Pong game file. |
-| `Jupyter/Calculator.ipynb` | Jupyter notebook featuring a multifunction scientific calculator and a modern scrollable calculator. |
-| `Powershell/Test 1.ps1` | Backup script with a number guessing game. |
-| `Powershell/Test 2.ps1` | System information dashboard. |
-| `Powershell/Test.ps1` | Age-based greeting script. |
-| `Python/MultiFunctional Calculator.py` | Tkinter calculator with arithmetic, powers, and square roots. |
-| `Python/subtractor.py` | Simple subtractor script. |
-| `Python/To Add Three Numbers.py` | Adds three numbers entered by the user. |
-| `Python/To Do All Maths Calculations.py` | Basic calculator with add, subtract, multiply, and divide functions. |
-| `Python/To Find Area of Rectangle.py` | Rectangle area calculator. |
-| `Python/To Find Even And Odd Numbers.py` | Even/odd number checker. |
-| `Python/To Find Perimeter Of Rectangle.py` | Rectangle perimeter calculator. |
-| `Python/To Multiply Three Numbers.py` | Multiplies three input numbers. |
-| `Requirements.txt` | Python and Jupyter dependencies for running the notebook and scripts. |
+| `Jupyter/Calculator.ipynb` | Jupyter notebook for multifunction and modern scrollable calculators. |
+| `Powershell/` | Contains PowerShell practice scripts (`Test 1.ps1`, `Test 2.ps1`, `Test.ps1`). |
+| `prompts/` | Text files containing prompts for the AI review system. |
+| `Python/` | Contains various Python practice scripts and a Tkinter calculator. |
+| `Requirements.txt` | Python and Jupyter dependencies. |
+| `scripts/` | Backend Python scripts supporting the AI review application. |
 | `Web 1/Web.html` | Original Web 1 HTML experiment. |
+| `web/` | Python Flask web application for daily AI reviews. |
+| `package.json` | Project manifest for the Daily AI Review web application. |
+| `package-lock.json` | Dependency lock file for the web application. |
+| `generate_mocks.py` | Script for generating mock data. |
+| `metadata.json` | Project metadata file. |
 
 ## Featured Projects
 
@@ -99,6 +100,19 @@ Highlights:
 - **Classic Scientific Calculator**: Supports addition, subtraction, multiplication, division, powers, and square roots, with full input validation and a project support link.
 - **Modern Scrollable Calculator**: Features custom deep slate dark and Nord Light themes, dynamic theme toggling, hover effects, and a canvas-based scrollable layout.
 - The notebook version includes both calculator implementations, each with clear usage notes, styled controls, and error handling.
+
+### Daily AI Review Web Application
+
+Path: `web/app.py` (main entry point)
+Hosted Dashboard: `docs/dashboard.html`
+
+Highlights:
+
+-   Python Flask-based web application providing a daily AI code review interface.
+-   Utilizes an AI model (e.g., Google Gemini) for generating code reviews.
+-   Generates AI reports, viewable through the web interface and potentially as `AI_REPORT.md`.
+-   Supports review of various file types, driven by configuration in the `prompts/` directory.
+-   Includes a dedicated dashboard for visualizing review results.
 
 ## Getting Started
 
@@ -151,6 +165,20 @@ From the project root:
 powershell -ExecutionPolicy Bypass -File "Powershell\Test.ps1"
 ```
 
+### Run the Daily AI Review Web Application
+
+1.  **Install Python dependencies:**
+    ```bash
+    pip install -r Requirements.txt
+    ```
+2.  **Start the Flask application:**
+    ```bash
+    npm start
+    # or directly:
+    PORT=3000 python3 -m web.app
+    ```
+    Access the application in your browser, typically at `http://localhost:3000`.
+
 ## Recent Updates
 
 - Removed `Jupyter/Test.ipynb`.
@@ -173,20 +201,25 @@ powershell -ExecutionPolicy Bypass -File "Powershell\Test.ps1"
 
 This repository is useful for practicing:
 
-- HTML, CSS, and JavaScript
-- browser-based project structure
-- beginner game development
-- Python fundamentals
-- Jupyter Notebook experiments
-- PowerShell scripting
-- publishing a static site with GitHub Pages
+-   HTML, CSS, and JavaScript
+-   Browser-based project structure
+-   Beginner game development
+-   Python fundamentals
+-   Jupyter Notebook experiments
+-   PowerShell scripting
+-   Publishing a static site with GitHub Pages
+-   Python Flask web development
+-   Integrating with AI APIs (e.g., Google Gemini)
+-   Building web dashboards
+-   Containerization with Dev Containers
 
 ## Repository Notes
 
 - This is a practice repository; therefore, some files are small exercises rather than complete applications.
-- The `docs` folder hosts the public GitHub Pages version of the site.
+- The `docs` folder hosts the public GitHub Pages version of the site, including browser projects and the AI review dashboard.
 - The Pong game is currently the most substantial browser project in the repository.
 - The Jupyter notebook utilizes Tkinter, meaning that GUI examples should be run in a desktop Python environment.
+- The "Daily AI Review" application is a more advanced project compared to the beginner exercises and requires Python dependencies listed in `Requirements.txt`.
 
 ## Future Improvements
 
