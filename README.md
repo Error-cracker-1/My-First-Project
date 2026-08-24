@@ -2,16 +2,6 @@
 
 This repository serves as a versatile learning environment, combining beginner-friendly projects in HTML, CSS, JavaScript, Python, PowerShell, and Jupyter Notebook, with a more advanced Python Flask web application for daily AI code reviews.
 
-## GitHub Actions
-
-[![AI Review](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-review.yml/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-review.yml)
-
-[![Code Coverage Agent](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/code-coverage-agent.yml/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/code-coverage-agent.yml)
-
-[![CodeQL](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml)
-
-[![pages-build-deployment](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment)
-
 ## Live Website
 
 This repository is hosted with GitHub Pages:
@@ -30,24 +20,24 @@ This repository combines learning exercises with a functional web application. I
 |---|---|
 | `.devcontainer/` | Configuration for a development container. |
 | `AI_REPORT.md` | Generated AI review reports. |
-| `app/applet/` | Contains files for a daily AI review applet, including `package.json` and `metadata.json`. |
-| `docs/Game Pong/Game 1.html` | Hosted copy of the Pong game. |
+| `app/applet/` | Files for a daily AI review applet, including `package.json` and `metadata.json`. |
+| `docs/` | Static files for GitHub Pages, including the main landing page, dashboard, and hosted browser projects. |
 | `docs/Web 1/Web.html` | Hosted copy of the Web 1 page. |
 | `docs/Web 1/styles.css` | Stylesheet for the hosted Web 1 page. |
 | `docs/dashboard.html` | Hosted dashboard for AI review reports. |
-| `docs/google83549bbb7ae16ebb.html` | Google Site Verification file. |
 | `docs/index.html` | Main GitHub Pages landing page. |
-| `docs/robots.txt` | Robots Exclusion Protocol (REP) file. |
 | `docs/styles.css` | Stylesheet for the GitHub Pages landing page. |
 | `Game Pong/Game 1.html` | Original browser-based Pong game file. |
 | `Jupyter/Calculator.ipynb` | Jupyter notebook for multifunction and modern scrollable calculators. |
 | `Powershell/` | Contains PowerShell practice scripts (`Test 1.ps1`, `Test 2.ps1`, `Test.ps1`). |
 | `prompts/` | Text files containing prompts for the AI review system. |
 | `Python/` | Contains various Python practice scripts and a Tkinter calculator. |
-| `Requirements.txt` | Python and Jupyter dependencies. |
+| `Requirements.txt` | Python and Jupyter dependencies for the project. |
 | `scripts/` | Backend Python scripts supporting the AI review application. |
 | `Web 1/Web.html` | Original Web 1 HTML experiment. |
 | `web/` | Python Flask web application for daily AI reviews. |
+| `web/static/` | Static assets (CSS, JS) for the Flask application. |
+| `web/templates/` | HTML templates for the Flask application. |
 | `package.json` | Project manifest for the Daily AI Review web application. |
 | `package-lock.json` | Dependency lock file for the web application. |
 | `generate_mocks.py` | Script for generating mock data. |
@@ -65,8 +55,8 @@ The landing page serves as the public entry point for the repository. It include
 
 Paths:
 
-- `docs/Game Pong/Game 1.html`
-- `Game Pong/Game 1.html`
+- `docs/index.html` (links to)
+- `Game Pong/Game 1.html` (original)
 
 Highlights:
 
@@ -79,8 +69,8 @@ Highlights:
 
 Paths:
 
-- `docs/Web 1/Web.html`
-- `Web 1/Web.html`
+- `docs/Web 1/Web.html` (hosted version)
+- `Web 1/Web.html` (original)
 
 Highlights:
 
@@ -97,7 +87,7 @@ Paths:
 
 Highlights:
 
-- **Classic Scientific Calculator**: Supports addition, subtraction, multiplication, division, powers, and square roots, with full input validation and a project support link.
+- **Classic Scientific Calculator**: Supports addition, subtraction, multiplication, division, powers, and square roots, with full input validation.
 - **Modern Scrollable Calculator**: Features custom deep slate dark and Nord Light themes, dynamic theme toggling, hover effects, and a canvas-based scrollable layout.
 - The notebook version includes both calculator implementations, each with clear usage notes, styled controls, and error handling.
 
@@ -110,7 +100,7 @@ Highlights:
 
 -   Python Flask-based web application providing a daily AI code review interface.
 -   Utilizes an AI model (e.g., Google Gemini) for generating code reviews.
--   Generates AI reports, viewable through the web interface and potentially as `AI_REPORT.md`.
+-   Generates AI reports, viewable through the web interface and as `AI_REPORT.md`.
 -   Supports review of various file types, driven by configuration in the `prompts/` directory.
 -   Includes a dedicated dashboard for visualizing review results.
 
@@ -126,9 +116,9 @@ https://error-cracker-1.github.io/My-First-Project/
 
 Open these files in your browser:
 
-- `docs/index.html`
 - `Game Pong/Game 1.html`
 - `Web 1/Web.html`
+- `docs/index.html`
 
 ### Run a Python Script
 
@@ -179,24 +169,6 @@ powershell -ExecutionPolicy Bypass -File "Powershell\Test.ps1"
     ```
     Access the application in your browser, typically at `http://localhost:3000`.
 
-## Recent Updates
-
-- Removed `Jupyter/Test.ipynb`.
-- Added the Modern Scrollable Calculator cell to `Jupyter/Calculator.ipynb`, which features custom dark/light themes, dynamic theme switching, and scrollbar support.
-- Updated package dependencies in `Requirements.txt`.
-- Added a title and detailed description to `Jupyter/Calculator.ipynb`.
-- Improved the notebook calculator layout with styled controls, a clear button, and usage notes.
-- Updated `README.md` with a stronger project description and calculator documentation.
-- Introduced `Python/MultiFunctional Calculator.py` and `Jupyter/Calculator.ipynb` with a Tkinter multifunction calculator.
-- Updated `Jupyter/Test.ipynb` to show GUI message boxes for welcome and guessing-game feedback.
-- Added `Jupyter/Test.ipynb` with Tkinter practice applications.
-- Expanded `Requirements.txt` with Jupyter Notebook, JupyterLab, widgets, and server dependencies.
-- Created a `docs` folder for GitHub Pages hosting.
-- Added `docs/index.html` as a clean landing page for project links.
-- Separated CSS into dedicated files for hosted pages where needed.
-- Added distinct favicons to website pages.
-- Retained original project folders alongside the hosted `docs` copies.
-
 ## Learning Focus
 
 This repository is useful for practicing:
@@ -220,13 +192,3 @@ This repository is useful for practicing:
 - The Pong game is currently the most substantial browser project in the repository.
 - The Jupyter notebook utilizes Tkinter, meaning that GUI examples should be run in a desktop Python environment.
 - The "Daily AI Review" application is a more advanced project compared to the beginner exercises and requires Python dependencies listed in `Requirements.txt`.
-
-## Future Improvements
-
-Possible next steps for this repo:
-
-- Add screenshots or GIFs for the Pong game and website pages
-- Keep the original and `docs` versions in sync
-- Add short descriptions for each Python and PowerShell script
-- Add more Markdown notes inside the Jupyter notebook
-- Move more shared styling into separate CSS files
