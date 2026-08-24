@@ -6,7 +6,7 @@ on:
       - master
       - feature-1
     paths-ignore:
-      - 'README.md'
+      - README.md
   schedule:
     - cron: '0 21 * * *'
   workflow_dispatch:
@@ -26,7 +26,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -48,20 +48,17 @@ jobs:
           from pathlib import Path
           from google import genai
 
-          root = Path('.').resolve()
+          root = Path.cwd()
           readme = root / 'README.md'
           instructions = root / '.github' / 'readme-generator-instructions.md'
           excluded_dirs = {'.git','.github','.venv','node_modules','vendor','build','dist','coverage','__pycache__','.cache','target','out','generated'}
           excluded_files = {'README.md','AI_CHANGELOG.md','Requirements.txt','requirements.txt'}
           allowed_extensions = {'.py','.html','.css','.js','.ts','.jsx','.tsx','.md','.txt','.ps1','.ipynb','.json','.yml','.yaml'}
 
-          def is_excluded(path):
-              return any(part in excluded_dirs for part in path.parts)
-
           def read_text(path, limit):
               try:
                   return path.read_text(encoding='utf-8', errors='ignore')[:limit]
-              except Exception:
+              except OSError:
                   return ''
 
           files = []
@@ -69,30 +66,31 @@ jobs:
               if not path.is_file():
                   continue
               relative = path.relative_to(root)
-              if is_excluded(relative) or path.name in excluded_files:
+              if any(part in excluded_dirs for part in relative.parts) or path.name in excluded_files:
                   continue
               if path.suffix.lower() in allowed_extensions:
                   files.append(relative.as_posix())
           files.sort()
 
-          try:
-              diff = subprocess.run(['git','diff','HEAD^','HEAD','--','.',':!README.md'], capture_output=True, text=True, timeout=30, check=False).stdout[:20000]
-          except Exception:
-              diff = ''
-          try:
-              recent_log = subprocess.run(['git','log','-8','--oneline','--decorate'], capture_output=True, text=True, timeout=30, check=False).stdout
-          except Exception:
-              recent_log = ''
+          def git_output(args):
+              result = subprocess.run(['git', *args], capture_output=True, text=True, timeout=30, check=False)
+              return result.stdout.strip()
+
+          recent_log = git_output(['log','-8','--oneline','--decorate'])
+          before = os.environ.get('GITHUB_EVENT_BEFORE', '')
+          sha = os.environ.get('GITHUB_SHA', 'HEAD')
+          diff = git_output(['diff', before, sha, '--', '.', ':!README.md']) if before and before != '0'*40 else git_output(['diff','HEAD^','HEAD','--','.',':!README.md'])
+          diff = diff[:20000]
 
           manifests = []
           for name in ['requirements.txt','Requirements.txt','pyproject.toml','package.json','Cargo.toml','go.mod','pom.xml','build.gradle','build.gradle.kts']:
               path = root / name
-              if path.exists() and path.is_file():
-                  manifests.append(f'\n--- {name} ---\n{read_text(path,10000)}')
+              if path.is_file():
+                  manifests.append(f'--- {name} ---\n{read_text(path,10000)}')
 
-          prompt = f'''You are the README maintenance agent for Error-cracker-1/My-First-Project.
+          prompt = f'''You are the README maintenance agent for this repository.
 
-Follow these repository instructions:
+Follow these instructions exactly:
 {read_text(instructions,12000)}
 
 CURRENT README:
@@ -102,47 +100,43 @@ REPOSITORY FILE LIST:
 {chr(10).join(files[:300])}
 
 PROJECT MANIFESTS:
-{''.join(manifests)}
+{chr(10).join(manifests)}
 
 RECENT COMMITS:
 {recent_log}
 
-RECENT CHANGES:
+CHANGES SINCE THE TRIGGERING COMMIT:
 {diff}
 
-Update README.md using only verified information above. Preserve useful existing documentation. Do not invent features, commands, dependencies, URLs, technologies, files, workflows, or deployment systems. Keep valid GitHub Actions and GitHub Pages badges. Return ONLY the complete updated README.md contents, without a code fence.'''
+Generate the complete updated README.md. Use only verified information supplied above. Preserve useful existing content and valid badges. Do not invent anything. Return ONLY the README contents, with no Markdown fence and no explanation.'''
 
           api_key = os.environ.get('GOOGLE_API_KEY')
           if not api_key:
-              raise SystemExit('GOOGLE_API_KEY is not configured in GitHub Secrets.')
+              raise SystemExit('GOOGLE_API_KEY is missing from repository secrets.')
           response = genai.Client(api_key=api_key).models.generate_content(model='gemini-2.5-flash', contents=prompt)
           generated = (response.text or '').strip()
-          for fence in ('```markdown','```md','```'):
-              if generated.startswith(fence):
-                  generated = generated[len(fence):].strip()
-                  break
-          if generated.endswith('```'):
-              generated = generated[:-3].rstrip()
+          if generated.startswith('```'):
+              generated = generated.split('\n',1)[1] if '\n' in generated else ''
+              if generated.endswith('```'):
+                  generated = generated[:-3].rstrip()
           if len(generated) < 300:
               raise SystemExit('Generated README is suspiciously short; refusing to replace README.')
           readme.write_text(generated + '\n', encoding='utf-8')
-          print('README generated successfully.')
           PY
 
-      - name: Validate README change
+      - name: Validate README-only change
         shell: bash
         run: |
           set -euo pipefail
+          test -s README.md
           changed="$(git diff --name-only)"
           if [ -n "$changed" ] && [ "$changed" != "README.md" ]; then
-            echo "ERROR: Files other than README.md changed:"
+            echo 'ERROR: The generator changed files other than README.md:'
             echo "$changed"
-            git checkout -- .
             exit 1
           fi
-          test -s README.md
 
-      - name: Commit README if changed
+      - name: Commit and push README when changed
         shell: bash
         run: |
           set -euo pipefail
@@ -154,4 +148,4 @@ Update README.md using only verified information above. Preserve useful existing
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add README.md
           git commit -m 'docs: automatically update README'
-          git push
+          git push origin "HEAD:${GITHUB_REF_NAME}"
