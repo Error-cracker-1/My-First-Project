@@ -93,9 +93,9 @@ Paths:
 
 Highlights:
 
-- **Classic Scientific Calculator**: Supports addition, subtraction, multiplication, division, powers, and square roots, with full input validation.
-- **Modern Scrollable Calculator**: Features custom deep slate dark and Nord Light themes, dynamic theme toggling, hover effects, and a canvas-based scrollable layout.
-- The notebook version includes both calculator implementations, each with clear usage notes, styled controls, and error handling.
+-   **Classic Scientific Calculator**: Supports addition, subtraction, multiplication, division, powers, and square roots, with full input validation.
+-   **Modern Scrollable Calculator**: Features custom deep slate dark and Nord Light themes, dynamic theme toggling, hover effects, and a canvas-based scrollable layout.
+-   The notebook version includes both calculator implementations, each with clear usage notes, styled controls, and error handling.
 
 ### Daily AI Review Web Application
 
