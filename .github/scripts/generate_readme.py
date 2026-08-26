@@ -17,9 +17,6 @@ ALLOWED_EXTENSIONS = {
     ".py", ".html", ".css", ".js", ".ts", ".jsx", ".tsx", ".md", ".txt",
     ".ps1", ".ipynb", ".json", ".yml", ".yaml"
 }
-EXCLUDED_DIRS = {".git", ".github", ".venv", "node_modules", "vendor", "build", "dist", "coverage", "__pycache__", ".cache", "target", "out", "generated"}
-EXCLUDED_FILES = {"README.md", "AI_CHANGELOG.md", "Requirements.txt", "requirements.txt"}
-ALLOWED_EXTENSIONS = {".py", ".html", ".css", ".js", ".ts", ".jsx", ".tsx", ".md", ".txt", ".ps1", ".ipynb", ".json", ".yml", ".yaml"}
 
 
 def read_text(path, limit):
@@ -33,7 +30,6 @@ def git_output(*args):
     result = subprocess.run(
         ["git", *args], capture_output=True, text=True, timeout=30, check=False
     )
-    result = subprocess.run(["git", *args], capture_output=True, text=True, timeout=30, check=False)
     return result.stdout.strip()
 
 
@@ -45,7 +41,6 @@ for path in ROOT.rglob("*"):
     if any(part in EXCLUDED_DIRS for part in relative.parts):
         continue
     if path.name in EXCLUDED_FILES:
-    if any(part in EXCLUDED_DIRS for part in relative.parts) or path.name in EXCLUDED_FILES:
         continue
     if path.suffix.lower() in ALLOWED_EXTENSIONS:
         files.append(relative.as_posix())
@@ -62,7 +57,6 @@ manifest_names = [
     "requirements.txt", "Requirements.txt", "pyproject.toml", "package.json",
     "Cargo.toml", "go.mod", "pom.xml", "build.gradle", "build.gradle.kts"
 ]
-manifest_names = ["requirements.txt", "Requirements.txt", "pyproject.toml", "package.json", "Cargo.toml", "go.mod", "pom.xml", "build.gradle", "build.gradle.kts"]
 manifests = []
 for name in manifest_names:
     path = ROOT / name
@@ -106,7 +100,6 @@ Return ONLY the README contents, with no Markdown fence and no explanation.
     recent_commits,
     diff[:20000],
 )
-""" % (read_text(INSTRUCTIONS, 12000), read_text(README, 30000), file_list, manifest_text, recent_commits, diff[:20000])
 
 api_key = os.environ.get("GOOGLE_API_KEY")
 if not api_key:
@@ -117,13 +110,6 @@ response = client.models.generate_content(
     model="gemini-2.5-flash",
     contents=prompt,
 )
-generated = (response.text or "").strip()
-
-if generated.startswith("```"):
-    lines = generated.splitlines()
-    if lines:
-        lines = lines[1:]
-response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
 generated = (response.text or "").strip()
 
 if generated.startswith("```"):
