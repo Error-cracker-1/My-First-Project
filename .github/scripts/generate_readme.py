@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -17,6 +18,9 @@ ALLOWED_EXTENSIONS = {
     ".py", ".html", ".css", ".js", ".ts", ".jsx", ".tsx", ".md", ".txt",
     ".ps1", ".ipynb", ".json", ".yml", ".yaml"
 }
+ACTION_BADGE_RE = re.compile(
+    r"^\s*\[!\[[^\]]*\]\([^)]*/actions/workflows/[^)]*/badge\.svg[^)]*\)\]\([^)]*\)\s*$"
+)
 
 
 def read_text(path, limit):
@@ -31,6 +35,38 @@ def git_output(*args):
         ["git", *args], capture_output=True, text=True, timeout=30, check=False
     )
     return result.stdout.strip()
+
+
+def extract_action_badges(text):
+    badges = []
+    for line in text.splitlines():
+        line = line.strip()
+        if ACTION_BADGE_RE.match(line) and line not in badges:
+            badges.append(line)
+    return badges
+
+
+def restore_action_badges(original, generated):
+    badges = extract_action_badges(original)
+    if not badges:
+        return generated
+
+    lines = [line for line in generated.splitlines() if not ACTION_BADGE_RE.match(line)]
+    heading_index = next(
+        (i for i, line in enumerate(lines) if line.strip().lower() == "## github actions"),
+        None,
+    )
+
+    if heading_index is not None:
+        insert_at = heading_index + 1
+        while insert_at < len(lines) and not lines[insert_at].strip():
+            insert_at += 1
+        lines[insert_at:insert_at] = [*badges, ""]
+    else:
+        insert_at = 1 if lines and lines[0].startswith("#") else 0
+        lines[insert_at:insert_at] = ["", *badges, ""]
+
+    return "\n".join(lines).strip()
 
 
 files = []
@@ -66,6 +102,7 @@ for name in manifest_names:
 file_list = "\n".join(files[:300])
 manifest_text = "\n".join(manifests)
 recent_commits = git_output("log", "-8", "--oneline", "--decorate")
+current_readme = read_text(README, 30000)
 
 prompt = """You are the README maintenance agent for this repository.
 
@@ -94,7 +131,7 @@ Preserve useful existing content and valid badges. Do not invent anything.
 Return ONLY the README contents, with no Markdown fence and no explanation.
 """ % (
     read_text(INSTRUCTIONS, 12000),
-    read_text(README, 30000),
+    current_readme,
     file_list,
     manifest_text,
     recent_commits,
@@ -121,5 +158,6 @@ if generated.startswith("```"):
 if len(generated) < 300:
     raise SystemExit("Generated README is suspiciously short; refusing to replace README.")
 
+generated = restore_action_badges(current_readme, generated)
 README.write_text(generated + "\n", encoding="utf-8")
-print("README generated successfully.")
+print("README generated successfully; existing GitHub Actions badges were preserved.")
