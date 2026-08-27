@@ -1,5 +1,13 @@
 # My First Project: Beginner Coding Projects and AI Review Application
 
+## GitHub Actions
+
+[![Daily AI Review](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-review.yml/badge.svg?branch=master)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-review.yml)
+[![Code Coverage Agent](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/code-coverage-agent.yml/badge.svg?branch=master)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/code-coverage-agent.yml)
+[![CodeQL Advanced](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml/badge.svg?branch=master)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml)
+[![README Generator](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml/badge.svg?branch=master)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml)
+
+
 This repository serves as a versatile learning environment, combining beginner-friendly projects in HTML, CSS, JavaScript, Python, PowerShell, and Jupyter Notebook, with a more advanced Python Flask web application for daily AI code reviews.
 
 ## Live Website
@@ -10,10 +18,6 @@ This repository is hosted with GitHub Pages:
 *   AI Review Dashboard: https://error-cracker-1.github.io/My-First-Project/dashboard.html
 
 The hosted site is served from the `docs` folder, with `docs/index.html` as the entry point, providing links to browser projects and a dashboard for AI review reports.
-
-## Overview
-
-This repository combines learning exercises with a functional web application. It features beginner-friendly HTML, CSS, JavaScript, Python, PowerShell, and Jupyter Notebook projects, alongside a Python Flask web application designed for daily AI code reviews. The GitHub Pages site serves as a landing page for browser projects and an AI review dashboard, while the repository also maintains original project folders and scripting practice files. The hosted site is served from the `docs` folder, with `docs/index.html` as the entry point and `docs/dashboard.html` providing a dedicated AI review interface.
 
 ## Repository Contents
 
