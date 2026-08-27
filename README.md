@@ -5,13 +5,9 @@ This repository is a versatile platform integrating beginner-friendly coding pro
 ## GitHub Actions
 
 [![AI Review](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-review.yml/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-review.yml)
-
 [![Code Coverage Agent](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/code-coverage-agent.yml/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/code-coverage-agent.yml)
-
 [![CodeQL](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml)
-
 [![pages-build-deployment](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment)
-
 [![README Generator](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml)
 
 ## Live Website
