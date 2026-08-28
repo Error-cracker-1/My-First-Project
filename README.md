@@ -8,7 +8,6 @@
 [![pages-build-deployment](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment)
 [![README Generator](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml/badge.svg?branch=master)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml)
 
-
 This repository serves as a versatile learning environment, combining beginner-friendly projects in HTML, CSS, JavaScript, Python, PowerShell, and Jupyter Notebook, with a more advanced Python Flask web application for daily AI code reviews.
 
 ## Live Website
