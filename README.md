@@ -1,11 +1,5 @@
 # My First Project: Beginner Coding Projects and AI Review Application
 
-[![Issues](https://img.shields.io/github/issues/Error-cracker-1/My-First-Project.svg)](https://github.com/Error-cracker-1/My-First-Project/issues)
-[![Bugs](https://img.shields.io/github/issues/Error-cracker-1/My-First-Project/bug.svg)](https://github.com/Error-cracker-1/My-First-Project/issues?q=is%3Aopen%20is%3Aissue%20label%3Abug)
-[![Feature Requests](https://img.shields.io/github/issues/Error-cracker-1/My-First-Project/enhancement.svg)](https://github.com/Error-cracker-1/My-First-Project/issues?q=is%3Aopen%20is%3Aissue%20label%3Aenhancement)
-[![Open Pull Requests](https://img.shields.io/github/issues-pr/Error-cracker-1/My-First-Project.svg)](https://github.com/Error-cracker-1/My-First-Project/pulls)
-[![Closed Pull Requests](https://img.shields.io/github/issues-pr-closed/Error-cracker-1/My-First-Project.svg)](https://github.com/Error-cracker-1/My-First-Project/pulls?q=is%3Aclosed)
-
 ## GitHub Actions
 
 [![Daily AI Review](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-review.yml/badge.svg?branch=master)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-review.yml)
@@ -13,6 +7,13 @@
 [![CodeQL Advanced](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml/badge.svg?branch=master)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml)
 [![pages-build-deployment](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment)
 [![README Generator](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml/badge.svg?branch=master)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml)
+
+
+[![Issues](https://img.shields.io/github/issues/Error-cracker-1/My-First-Project.svg)](https://github.com/Error-cracker-1/My-First-Project/issues)
+[![Bugs](https://img.shields.io/github/issues/Error-cracker-1/My-First-Project/bug.svg)](https://github.com/Error-cracker-1/My-First-Project/issues?q=is%3Aopen%20is%3Aissue%20label%3Abug)
+[![Feature Requests](https://img.shields.io/github/issues/Error-cracker-1/My-First-Project/enhancement.svg)](https://github.com/Error-cracker-1/My-First-Project/issues?q=is%3Aopen%20is%3Aissue%20label%3Aenhancement)
+[![Open Pull Requests](https://img.shields.io/github/issues-pr/Error-cracker-1/My-First-Project.svg)](https://github.com/Error-cracker-1/My-First-Project/pulls)
+[![Closed Pull Requests](https://img.shields.io/github/issues-pr-closed/Error-cracker-1/My-First-Project.svg)](https://github.com/Error-cracker-1/My-First-Project/pulls?q=is%3Aclosed)
 
 This repository serves as a versatile learning environment, combining beginner-friendly projects in HTML, CSS, JavaScript, Python, PowerShell, and Jupyter Notebook, with a more advanced Python Flask web application for daily AI code reviews.
 
