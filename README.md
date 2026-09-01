@@ -8,7 +8,6 @@
 [![pages-build-deployment](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment)
 [![README Generator](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml/badge.svg?branch=master)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml)
 
-
 [![Issues](https://img.shields.io/github/issues/Error-cracker-1/My-First-Project.svg)](https://github.com/Error-cracker-1/My-First-Project/issues)
 [![Bugs](https://img.shields.io/github/issues/Error-cracker-1/My-First-Project/bug.svg)](https://github.com/Error-cracker-1/My-First-Project/issues?q=is%3Aopen%20is%3Aissue%20label%3Abug)
 [![Feature Requests](https://img.shields.io/github/issues/Error-cracker-1/My-First-Project/enhancement.svg)](https://github.com/Error-cracker-1/My-First-Project/issues?q=is%3Aopen%20is%3Aissue%20label%3Aenhancement)
