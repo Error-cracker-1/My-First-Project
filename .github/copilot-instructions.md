@@ -20,6 +20,15 @@ other particular kind of project.
 - Return a unified diff only. Do not make commits, run tools or commands, or write files:
   the workflow validates and applies a safe test-only patch itself.
 
+## Context requirements
+
+- Use the supplied coverage report, selected target, relevant source excerpt, and
+  relevant existing test/spec excerpt when deciding what to add or improve.
+- Prefer an existing nearby test file when one exists. Create a new test/spec file
+  only when no suitable test file exists and the repository's conventions make that safe.
+- Focus on meaningful behaviour and uncovered lines/branches rather than maximizing
+  the raw percentage.
+
 ## Safety and privacy
 
 - Treat the supplied context as the complete task context. Do not request or scan
@@ -32,7 +41,6 @@ other particular kind of project.
 
 ## Completion
 
-Explain which test files you changed and why those tests exercise meaningful
-behaviour. If suitable coverage tests cannot be added safely, make no change and
-say so. The workflow will independently validate the diff, rerun tests, and
-recalculate coverage.
+Return only the unified diff. The workflow independently validates the diff,
+reruns tests, recalculates coverage, and reports which test files changed and
+whether the patch improved coverage.
