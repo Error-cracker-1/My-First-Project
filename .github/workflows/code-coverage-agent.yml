@@ -1,19 +1,24 @@
 name: Code Coverage Agent
 
 on:
-  pull_request:
+  push:
     branches:
       - master
+      - feature-1
     paths-ignore:
       - '**.md'
       - 'docs/**'
-      - '.github/**'
-      - '.gitignore'
-      - 'LICENSE*'
+  pull_request:
+    branches:
+      - master
+      - feature-1
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
   workflow_dispatch:
     inputs:
       enable_copilot:
-        description: Allow one bounded Copilot CLI test-improvement request
+        description: Allow one bounded Copilot test-improvement request
         required: false
         default: false
         type: boolean
@@ -29,7 +34,7 @@ concurrency:
 
 jobs:
   coverage:
-    name: Test, measure, and optionally improve coverage
+    name: Discover, test, measure, and optionally improve coverage
     runs-on: ubuntu-latest
     outputs:
       testable: ${{ steps.detect.outputs.testable }}
@@ -41,13 +46,44 @@ jobs:
       files_changed: ${{ steps.final.outputs.files_changed }}
       failures: ${{ steps.final.outputs.failures }}
     steps:
-      - name: Check out PR head or manual commit
-        uses: actions/checkout@v4
+      - name: Check out PR head or pushed/manual commit
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
+      - name: Discover project languages and test frameworks
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/coverage-agent"
+          mkdir -p "$root/reports"
+          excluded='(^|/)(vendor|node_modules|\.venv|\.git|build|dist|coverage|\.cache|__pycache__|target|out|generated)(/|$)'
+          base='${{ github.event.pull_request.base.sha }}'
+          if [ -z "$base" ]; then base="$(git rev-parse HEAD^)"; fi
+          git diff --name-only "$base" HEAD | grep -Ev "$excluded" > "$root/changed.txt" || true
+
+          python=false; node=false; java=false; go=false; ruby=false; rust=false; dotnet=false; cpp=false; powershell=false
+          find . -path './.git' -prune -o -path './.venv' -prune -o -path './node_modules' -prune -o -path './vendor' -prune -o -type f -name '*.py' -print -quit | grep -q . && python=true || true
+          find . -path './.git' -prune -o -path './node_modules' -prune -o -type f -name 'package.json' -print -quit | grep -q . && node=true || true
+          find . -path './.git' -prune -o -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'build.gradle.kts' \) -print -quit | grep -q . && java=true || true
+          find . -path './.git' -prune -o -type f -name 'go.mod' -print -quit | grep -q . && go=true || true
+          find . -path './.git' -prune -o -type f -name 'Gemfile' -print -quit | grep -q . && ruby=true || true
+          find . -path './.git' -prune -o -type f -name 'Cargo.toml' -print -quit | grep -q . && rust=true || true
+          find . -path './.git' -prune -o -type f -name '*.sln' -print -quit | grep -q . && dotnet=true || true
+          find . -path './.git' -prune -o -type f \( -name 'CMakeLists.txt' -o -name 'Makefile' \) -print -quit | grep -q . && cpp=true || true
+          find . -path './.git' -prune -o -type f -name '*.Tests.ps1' -print -quit | grep -q . && powershell=true || true
+
+          printf 'python=%s\nnode=%s\njava=%s\ngo=%s\nruby=%s\nrust=%s\ndotnet=%s\ncpp=%s\npowershell=%s\n' "$python" "$node" "$java" "$go" "$ruby" "$rust" "$dotnet" "$cpp" "$powershell" > "$root/languages.txt"
+          testable=false
+          grep -q '=true' "$root/languages.txt" && testable=true || true
+          if [ '${{ github.event_name }}' = 'pull_request' ] && [ ! -s "$root/changed.txt" ]; then testable=false; fi
+          echo "testable=$testable" >> "$GITHUB_OUTPUT"
+          cat "$root/languages.txt"
+
       - name: Set up Python
+        if: steps.detect.outputs.testable == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -58,96 +94,279 @@ jobs:
             **/setup.cfg
             **/setup.py
 
-      - name: Detect Python project and changed source
-        id: detect
-        shell: bash
-        run: |
-          set -euo pipefail
-          excluded='(^|/)(vendor|node_modules|\.venv|\.git|build|dist|coverage|\.cache|__pycache__|target|out|generated)(/|$)'
-          base='${{ github.event.pull_request.base.sha }}'
-          if [ -z "$base" ]; then base="$(git rev-parse HEAD^)"; fi
-          git diff --name-only "$base" HEAD | grep -Ev "$excluded" > "$RUNNER_TEMP/coverage-changed.txt" || true
-          if ! find . -path './.git' -prune -o -path './.venv' -prune -o -path './node_modules' -prune -o -type f -name '*.py' -print -quit | grep -q .; then
-            echo 'testable=false' >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          if [ '${{ github.event_name }}' = 'pull_request' ] && [ ! -s "$RUNNER_TEMP/coverage-changed.txt" ]; then
-            echo 'testable=false' >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo 'testable=true' >> "$GITHUB_OUTPUT"
+      - name: Set up Node.js
+        if: steps.detect.outputs.testable == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
 
-      - name: Install project dependencies and coverage tooling
+      - name: Set up Java
+        if: steps.detect.outputs.testable == 'true'
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Go
+        if: steps.detect.outputs.testable == 'true'
+        uses: actions/setup-go@v6
+        with:
+          go-version: stable
+          cache: true
+
+      - name: Set up Ruby
+        if: steps.detect.outputs.testable == 'true'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Set up .NET
+        if: steps.detect.outputs.testable == 'true'
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install common coverage tools
         if: steps.detect.outputs.testable == 'true'
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check --upgrade pip
-          if [ -f requirements.txt ]; then python -m pip install --disable-pip-version-check -r requirements.txt; fi
-          if [ -f pyproject.toml ] || [ -f setup.cfg ] || [ -f setup.py ]; then python -m pip install --disable-pip-version-check .; fi
-          python -m pip install --disable-pip-version-check coverage pytest
+          root="$RUNNER_TEMP/coverage-agent"
+          if grep -q '^python=true$' "$root/languages.txt"; then
+            python -m pip install --disable-pip-version-check --upgrade pip
+            if [ -f requirements.txt ]; then python -m pip install --disable-pip-version-check -r requirements.txt; fi
+            if [ -f pyproject.toml ] || [ -f setup.cfg ] || [ -f setup.py ]; then python -m pip install --disable-pip-version-check .; fi
+            python -m pip install --disable-pip-version-check coverage pytest pytest-cov
+          fi
+          if grep -q '^ruby=true$' "$root/languages.txt" && [ -f Gemfile ]; then bundle install --jobs 4 --retry 3; fi
+          if grep -q '^powershell=true$' "$root/languages.txt"; then
+            pwsh -NoLogo -NoProfile -Command 'Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck'
+          fi
 
-      - name: Run the existing test suite with line coverage
+      - name: Run detected test suites and create Cobertura reports
         if: steps.detect.outputs.testable == 'true'
         id: tests
         shell: bash
         run: |
-          set -euo pipefail
-          root="$RUNNER_TEMP/coverage-agent"; mkdir -p "$root"; : > "$root/tests.txt"
-          if find . -path './.git' -prune -o -path './.venv' -prune -o -path './node_modules' -prune -o -path './coverage' -prune -o -type f \( -name 'test_*.py' -o -name '*_test.py' -o -name 'tests.py' \) -print -quit | grep -q .; then
-            echo 'pytest' | tee -a "$root/tests.txt"
-            python -m coverage erase
-            python -m coverage run --source=Python -m pytest
-          else
-            echo 'No Python test suite was found.' | tee -a "$root/tests.txt"
-            exit 1
-          fi
-          python -m coverage json -o "$root/coverage.json"
-          python -m coverage xml -o "$root/coverage.xml"
-          python -m coverage report
+          set -uo pipefail
+          root="$RUNNER_TEMP/coverage-agent"; mkdir -p "$root/reports"; : > "$root/tests.txt"; failures=0; ran=0
+          has_tests() { find . -path './.git' -prune -o -path './.venv' -prune -o -path './node_modules' -prune -o -path './vendor' -prune -o -path './build' -prune -o -path './dist' -prune -o -type f "$@" -print -quit 2>/dev/null | grep -q .; }
 
-      - name: Upload coverage to GitHub Code Quality
+          if grep -q '^python=true$' "$root/languages.txt" && has_tests \( -name 'test_*.py' -o -name '*_test.py' -o -name 'tests.py' \); then
+            ran=$((ran+1)); echo 'Python: pytest + pytest-cov' | tee -a "$root/tests.txt"
+            python -m pytest --cov=. --cov-report=xml:"$root/reports/python.xml" || failures=$((failures+1))
+          elif grep -q '^python=true$' "$root/languages.txt"; then
+            echo 'Python detected but no supported Python test files found; skipped.' | tee -a "$root/tests.txt"
+          fi
+
+          if grep -q '^node=true$' "$root/languages.txt"; then
+            while IFS= read -r manifest; do
+              dir=$(dirname "$manifest"); cd "$GITHUB_WORKSPACE/$dir"
+              if node -e "const p=require('./package.json'); process.exit(p.scripts&&p.scripts.test?0:1)"; then
+                ran=$((ran+1)); echo "Node: npm test in $dir" | tee -a "$root/tests.txt"
+                if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then npm ci --ignore-scripts || failures=$((failures+1)); else npm install --ignore-scripts || failures=$((failures+1)); fi
+                if node -e "const p=require('./package.json'); const d={...(p.dependencies||{}),...(p.devDependencies||{})}; process.exit(d.nyc?0:1)"; then
+                  npx nyc --reporter=cobertura --report-dir="$root/reports/node" npm test || failures=$((failures+1))
+                  [ -f "$root/reports/node/cobertura-coverage.xml" ] && cp "$root/reports/node/cobertura-coverage.xml" "$root/reports/javascript.xml"
+                elif node -e "const p=require('./package.json'); const d={...(p.dependencies||{}),...(p.devDependencies||{})}; process.exit(d.jest?0:1)"; then
+                  npm test -- --coverage --coverageReporters=cobertura || failures=$((failures+1))
+                  find . -type f -path '*/coverage/cobertura-coverage.xml' -print -quit | xargs -r -I{} cp '{}' "$root/reports/javascript.xml"
+                elif node -e "const p=require('./package.json'); const d={...(p.dependencies||{}),...(p.devDependencies||{}); process.exit(d.vitest?0:1)" 2>/dev/null; then
+                  npm test -- --coverage --coverage.reporter=cobertura || failures=$((failures+1))
+                  find . -type f -path '*/coverage/cobertura-coverage.xml' -print -quit | xargs -r -I{} cp '{}' "$root/reports/javascript.xml"
+                else
+                  echo "Node: test script found in $dir, but no supported coverage provider was detected; skipped coverage upload." | tee -a "$root/tests.txt"
+                fi
+              fi
+              cd "$GITHUB_WORKSPACE"
+            done < <(find . -path './.git' -prune -o -path './node_modules' -prune -o -type f -name package.json -print)
+          fi
+
+          if grep -q '^java=true$' "$root/languages.txt"; then
+            if find . -path './.git' -prune -o -type f -name pom.xml -print -quit | grep -q .; then
+              ran=$((ran+1)); echo 'Java: Maven + JaCoCo -> Cobertura' | tee -a "$root/tests.txt"
+              mvn -B test org.jacoco:jacoco-maven-plugin:report || failures=$((failures+1))
+              jacoco=$(find . -type f -path '*/target/site/jacoco/jacoco.xml' -print -quit)
+              if [ -n "$jacoco" ]; then python .github/scripts/cover2cover.py "$jacoco" . > "$root/reports/java.xml"; fi
+            fi
+            if find . -path './.git' -prune -o -type f \( -name build.gradle -o -name build.gradle.kts \) -print -quit | grep -q .; then
+              ran=$((ran+1)); echo 'Java/Kotlin: Gradle + JaCoCo -> Cobertura' | tee -a "$root/tests.txt"
+              if [ -x ./gradlew ]; then ./gradlew test jacocoTestReport || failures=$((failures+1)); else gradle test jacocoTestReport || failures=$((failures+1)); fi
+              jacoco=$(find . -type f -path '*/build/reports/jacoco/*/*.xml' -print -quit)
+              if [ -n "$jacoco" ]; then python .github/scripts/cover2cover.py "$jacoco" . > "$root/reports/java.xml"; fi
+            fi
+          fi
+
+          if grep -q '^go=true$' "$root/languages.txt" && find . -path './.git' -prune -o -type f -name '*_test.go' -print -quit | grep -q .; then
+            ran=$((ran+1)); echo 'Go: go test + gocover-cobertura' | tee -a "$root/tests.txt"
+            go install github.com/boumenot/gocover-cobertura@latest
+            go test ./... -coverprofile="$root/go.cover" || failures=$((failures+1))
+            "$(go env GOPATH)/bin/gocover-cobertura" < "$root/go.cover" > "$root/reports/go.xml" || failures=$((failures+1))
+          fi
+
+          if grep -q '^ruby=true$' "$root/languages.txt" && find . -path './.git' -prune -o -type f -name '*_spec.rb' -print -quit | grep -q .; then
+            ran=$((ran+1)); echo 'Ruby: RSpec + SimpleCov/Cobertura' | tee -a "$root/tests.txt"
+            bundle exec rspec || failures=$((failures+1))
+            find . -type f -name 'coverage.xml' -print -quit | xargs -r -I{} cp '{}' "$root/reports/ruby.xml"
+          fi
+
+          if grep -q '^rust=true$' "$root/languages.txt" && find . -path './.git' -prune -o -type f -name '*.rs' -print -quit | grep -q .; then
+            ran=$((ran+1)); echo 'Rust: cargo test + cargo-llvm-cov' | tee -a "$root/tests.txt"
+            rustup component add llvm-tools-preview
+            cargo install cargo-llvm-cov --locked
+            cargo llvm-cov --cobertura --output-path "$root/reports/rust.xml" || failures=$((failures+1))
+          fi
+
+          if grep -q '^dotnet=true$' "$root/languages.txt" && find . -type f \( -name '*.csproj' -o -name '*.fsproj' -o -name '*.vbproj' \) -print -quit | grep -q .; then
+            ran=$((ran+1)); echo '.NET: dotnet test + XPlat coverage' | tee -a "$root/tests.txt"
+            dotnet test --collect:'XPlat Code Coverage' || failures=$((failures+1))
+            find . -type f -name 'coverage.cobertura.xml' -print -quit | xargs -r -I{} cp '{}' "$root/reports/dotnet.xml"
+          fi
+
+          if grep -q '^cpp=true$' "$root/languages.txt" && [ -f CMakeLists.txt ] && command -v cmake >/dev/null; then
+            ran=$((ran+1)); echo 'C/C++: CMake/CTest + gcovr' | tee -a "$root/tests.txt"
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug || failures=$((failures+1))
+            cmake --build build || failures=$((failures+1))
+            ctest --test-dir build --output-on-failure || failures=$((failures+1))
+            python -m pip install --disable-pip-version-check gcovr
+            gcovr -r . --cobertura-pretty --output "$root/reports/cpp.xml" || failures=$((failures+1))
+          fi
+
+          if grep -q '^powershell=true$' "$root/languages.txt"; then
+            ran=$((ran+1)); echo 'PowerShell: Pester + Cobertura' | tee -a "$root/tests.txt"
+            pwsh -NoLogo -NoProfile -Command '$c=New-PesterConfiguration; $c.Run.Path="."; $c.Run.Exit=$true; $c.CodeCoverage.Enabled=$true; $c.CodeCoverage.Path=(Get-ChildItem -Recurse -Filter *.ps1 | Where-Object {$_.FullName -notmatch "\.Tests\.ps1$"}).FullName; $c.CodeCoverage.OutputFormat="Cobertura"; $c.CodeCoverage.OutputPath="$env:RUNNER_TEMP/coverage-agent/reports/powershell.xml"; Invoke-Pester -Configuration $c' || failures=$((failures+1))
+          fi
+
+          # If a repository already produces a Cobertura report, discover it as a fallback.
+          if ! find "$root/reports" -type f -name '*.xml' -print -quit | grep -q .; then
+            existing=$(find . -path './.git' -prune -o -path './node_modules' -prune -o -type f \( -name 'coverage.xml' -o -name 'cobertura.xml' -o -name 'coverage.cobertura.xml' \) -print -quit)
+            if [ -n "$existing" ]; then cp "$existing" "$root/reports/existing.xml"; fi
+          fi
+
+          echo "ran=$ran" >> "$GITHUB_OUTPUT"
+          echo "failures=$failures" >> "$GITHUB_OUTPUT"
+          if [ "$ran" -eq 0 ]; then echo 'No runnable test suite with a supported coverage adapter was found.' | tee -a "$root/tests.txt"; fi
+          cat "$root/tests.txt"
+          exit 0
+
+      - name: Upload every discovered Cobertura report to Code Quality
         if: steps.detect.outputs.testable == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/coverage-agent/reports"
+          # Each upload is intentionally separate so mixed-language repositories retain per-language labels.
+          true
+        
+      - name: Upload Python coverage
+        if: hashFiles(format('{0}/coverage-agent/reports/python.xml', runner.temp)) != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: actions/upload-code-coverage@v1
         with:
-          file: ${{ runner.temp }}/coverage-agent/coverage.xml
-          language: python
-          label: python
+          file: ${{ runner.temp }}/coverage-agent/reports/python.xml
+          language: Python
+          label: code-coverage/python
 
-      - name: Summarize initial coverage and select the highest-value target
+      - name: Upload JavaScript coverage
+        if: hashFiles(format('{0}/coverage-agent/reports/javascript.xml', runner.temp)) != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: actions/upload-code-coverage@v1
+        with:
+          file: ${{ runner.temp }}/coverage-agent/reports/javascript.xml
+          language: JavaScript
+          label: code-coverage/javascript
+
+      - name: Upload Java coverage
+        if: hashFiles(format('{0}/coverage-agent/reports/java.xml', runner.temp)) != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: actions/upload-code-coverage@v1
+        with:
+          file: ${{ runner.temp }}/coverage-agent/reports/java.xml
+          language: Java
+          label: code-coverage/java
+
+      - name: Upload Go coverage
+        if: hashFiles(format('{0}/coverage-agent/reports/go.xml', runner.temp)) != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: actions/upload-code-coverage@v1
+        with:
+          file: ${{ runner.temp }}/coverage-agent/reports/go.xml
+          language: Go
+          label: code-coverage/go
+
+      - name: Upload Ruby coverage
+        if: hashFiles(format('{0}/coverage-agent/reports/ruby.xml', runner.temp)) != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: actions/upload-code-coverage@v1
+        with:
+          file: ${{ runner.temp }}/coverage-agent/reports/ruby.xml
+          language: Ruby
+          label: code-coverage/ruby
+
+      - name: Upload Rust coverage
+        if: hashFiles(format('{0}/coverage-agent/reports/rust.xml', runner.temp)) != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: actions/upload-code-coverage@v1
+        with:
+          file: ${{ runner.temp }}/coverage-agent/reports/rust.xml
+          language: Rust
+          label: code-coverage/rust
+
+      - name: Upload .NET coverage
+        if: hashFiles(format('{0}/coverage-agent/reports/dotnet.xml', runner.temp)) != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: actions/upload-code-coverage@v1
+        with:
+          file: ${{ runner.temp }}/coverage-agent/reports/dotnet.xml
+          language: CSharp
+          label: code-coverage/dotnet
+
+      - name: Upload C/C++ coverage
+        if: hashFiles(format('{0}/coverage-agent/reports/cpp.xml', runner.temp)) != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: actions/upload-code-coverage@v1
+        with:
+          file: ${{ runner.temp }}/coverage-agent/reports/cpp.xml
+          language: CPlusPlus
+          label: code-coverage/cpp
+
+      - name: Upload PowerShell coverage
+        if: hashFiles(format('{0}/coverage-agent/reports/powershell.xml', runner.temp)) != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: actions/upload-code-coverage@v1
+        with:
+          file: ${{ runner.temp }}/coverage-agent/reports/powershell.xml
+          language: PowerShell
+          label: code-coverage/powershell
+
+      - name: Summarize coverage and select the highest-value target
         if: steps.detect.outputs.testable == 'true'
         id: initial
         shell: bash
-        env:
-          CHANGED_FILE: ${{ runner.temp }}/coverage-changed.txt
         run: |
           set -euo pipefail
+          root="$RUNNER_TEMP/coverage-agent"
           python - <<'PY'
-          import json, os
+          import os, xml.etree.ElementTree as ET
           from pathlib import Path
-          root = Path(os.environ['RUNNER_TEMP']) / 'coverage-agent'
-          data = json.loads((root / 'coverage.json').read_text(encoding='utf-8'))
-          totals = data.get('totals', {})
-          covered = int(totals.get('covered_lines', 0)); total = int(totals.get('num_statements', 0))
-          percent = round(100 * covered / total, 2) if total else 'n/a'
-          changed = set(Path(os.environ['CHANGED_FILE']).read_text().splitlines()) if Path(os.environ['CHANGED_FILE']).exists() else set()
-          candidates=[]
-          for name,item in data.get('files',{}).items():
-              missing=item.get('missing_lines',[])
-              if missing:
-                  normalized=name.replace('\\','/')
-                  candidates.append((0 if normalized in changed else 1,-len(missing),normalized,missing[:30]))
+          root=Path(os.environ['RUNNER_TEMP'])/'coverage-agent'
+          changed=set((root/'changed.txt').read_text(encoding='utf-8').splitlines()) if (root/'changed.txt').exists() else set()
+          reports=[]; total=covered=0; candidates=[]
+          for report in sorted((root/'reports').glob('*.xml')):
+              try: tree=ET.parse(report); r=tree.getroot()
+              except Exception: continue
+              for line in r.findall('.//class/lines/line'):
+                  total+=1
+                  if int(line.attrib.get('hits','0') or 0)>0: covered+=1
+              for cls in r.findall('.//class'):
+                  name=cls.attrib.get('filename','')
+                  missing=[int(x.attrib['number']) for x in cls.findall('./lines/line') if int(x.attrib.get('hits','0') or 0)==0]
+                  if missing: candidates.append((0 if name.replace('\\','/') in changed else 1,-len(missing),name,missing[:30]))
+              reports.append(report.name)
+          pct=round(100*covered/total,2) if total else 'n/a'
           candidates.sort()
           if candidates:
-              _,_,name,missing=candidates[0]
-              (root/'target.txt').write_text(name+'\n',encoding='utf-8')
+              _,_,name,missing=candidates[0]; (root/'target.txt').write_text(name+'\n',encoding='utf-8')
               detail=f'- `{name}`: {len(missing)} uncovered lines (examples: {", ".join(map(str,missing))})'
           else:
               (root/'target.txt').write_text('',encoding='utf-8'); detail='- No uncovered executable lines were found.'
-          (root/'report.md').write_text(f'# Code Coverage Agent\n\nInitial line coverage: **{percent}%**\n\nHighest-value target:\n{detail}\n',encoding='utf-8')
-          with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as out: out.write(f'percent={percent}\n')
+          (root/'report.md').write_text('# Code Coverage Agent\n\n'+f'Initial aggregate line coverage: **{pct}%**\n\nReports: {", ".join(reports) or "none"}\n\nHighest-value target:\n{detail}\n',encoding='utf-8')
+          with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as o: o.write(f'percent={pct}\n')
           PY
-          cat "$RUNNER_TEMP/coverage-agent/report.md"
+          cat "$root/report.md"
 
       - name: Decide whether one AI request is permitted
         if: steps.detect.outputs.testable == 'true'
@@ -160,7 +379,7 @@ jobs:
           if [ '${{ github.event_name }}' = 'pull_request' ] && [ '${{ contains(github.event.pull_request.labels.*.name, 'coverage-agent') }}' = 'true' ] && [ '${{ github.event.pull_request.head.repo.fork }}' = 'false' ]; then allowed=true; fi
           echo "allowed=$allowed" >> "$GITHUB_OUTPUT"
 
-      - name: Install and invoke Copilot CLI once for a test-only patch
+      - name: Install and invoke Copilot once for a test-only patch
         if: steps.policy.outputs.allowed == 'true'
         id: copilot
         continue-on-error: true
@@ -169,66 +388,84 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          target=$(head -1 "$RUNNER_TEMP/coverage-agent/target.txt" || true); [ -n "$target" ] || exit 0; test -f "$target"
+          root="$RUNNER_TEMP/coverage-agent"
+          target=$(head -1 "$root/target.txt" || true)
+          [ -n "$target" ] || exit 0
+          test -f "$target"
           npm install --global @github/copilot
-          test_excerpt=$(find "$(dirname "$target")" -maxdepth 3 -type f \( -name 'test_*.py' -o -name '*_test.py' -o -name 'tests.py' -o -name '*.spec.js' -o -name '*.test.js' -o -name '*.spec.ts' -o -name '*.test.ts' \) -print -quit 2>/dev/null || true)
+          test_excerpt=$(find "$(dirname "$target")" -maxdepth 4 -type f \( -name 'test_*.py' -o -name '*_test.py' -o -name '*.Tests.ps1' -o -name '*_spec.rb' -o -name '*.spec.js' -o -name '*.test.js' -o -name '*.spec.ts' -o -name '*.test.ts' -o -name '*Test.java' -o -name '*Tests.cs' -o -name '*_test.go' -o -name '*_test.rs' \) -print -quit 2>/dev/null || true)
           {
             cat .github/copilot-instructions.md
-            printf '\n\nCoverage report:\n'; cat "$RUNNER_TEMP/coverage-agent/report.md"
-            printf '\n\nSelected target: %s\n\nSource excerpt:\n' "$target"; sed -n '1,320p' "$target"
-            if [ -n "$test_excerpt" ] && [ -f "$test_excerpt" ]; then printf '\n\nRelevant test excerpt: %s\n' "$test_excerpt"; sed -n '1,320p' "$test_excerpt"; fi
-            printf '\n\nReturn only a unified diff. The diff must modify exactly one existing or new test/spec file and must not modify production code, configuration, dependencies, workflows, or generated files.\n'
+            printf '\n\nCoverage report:\n'; cat "$root/report.md"
+            printf '\n\nSelected target: %s\n\nSource excerpt:\n' "$target"; sed -n '1,360p' "$target"
+            if [ -n "$test_excerpt" ] && [ -f "$test_excerpt" ]; then printf '\n\nRelevant test excerpt: %s\n' "$test_excerpt"; sed -n '1,360p' "$test_excerpt"; fi
+            printf '\n\nReturn only a unified diff. Modify exactly one test/spec file. Never modify production code, configuration, dependencies, workflows, generated files, documentation, or assets.\n'
           } > "$RUNNER_TEMP/copilot-prompt.md"
           mkdir -p "$RUNNER_TEMP/copilot-sandbox"
           (cd "$RUNNER_TEMP/copilot-sandbox" && copilot -p "$(cat "$RUNNER_TEMP/copilot-prompt.md")") > "$RUNNER_TEMP/copilot.patch"
           test -s "$RUNNER_TEMP/copilot.patch"
           git apply --check "$RUNNER_TEMP/copilot.patch"
-          changed=$(git apply --numstat "$RUNNER_TEMP/copilot.patch" | cut -f3); [ -n "$changed" ]; [ "$(printf '%s\n' "$changed" | wc -l | tr -d ' ')" -eq 1 ]
-          printf '%s\n' "$changed" | grep -Eq '(^|/)(test|tests|spec)(/|$)|(^|/)(test_[^/]*|[^/]*_test|tests|[^/]*\.spec|[^/]*\.test)\.(py|js|jsx|ts|tsx|java|kt|go|rs|cs|cpp|c|h|php|rb|swift)$'
-          ! printf '%s\n' "$changed" | grep -Eq '(^|/)(\.github|vendor|node_modules|\.venv|\.git|build|dist|coverage|generated)(/|$)|(^|/)(package(-lock)?\.json|yarn\.lock|pnpm-lock\.yaml|requirements.*\.txt|pyproject\.toml|Cargo\.toml|go\.mod|pom\.xml|build\.gradle(\.kts)?)$'
+          changed=$(git apply --numstat "$RUNNER_TEMP/copilot.patch" | cut -f3)
+          [ -n "$changed" ] && [ "$(printf '%s\n' "$changed" | wc -l | tr -d ' ')" -eq 1 ]
+          printf '%s\n' "$changed" | grep -Eq '(^|/)(test|tests|spec)(/|$)|(^|/)(test_[^/]*|[^/]*_test|tests|[^/]*\.spec|[^/]*\.test|[^/]*Tests|[^/]*\.Tests)\.(py|ps1|js|jsx|ts|tsx|java|kt|go|rs|cs|cpp|c|h|php|rb|swift)$'
+          ! printf '%s\n' "$changed" | grep -Eq '(^|/)(\.github|vendor|node_modules|\.venv|\.git|build|dist|coverage|generated|docs)(/|$)|(^|/)(package(-lock)?\.json|yarn\.lock|pnpm-lock\.yaml|requirements.*\.txt|pyproject\.toml|Cargo\.toml|go\.mod|pom\.xml|build\.gradle(\.kts)?)$'
           git apply "$RUNNER_TEMP/copilot.patch"
+          printf '%s\n' "$changed" > "$root/applied-test-file.txt"
           echo 'applied=true' >> "$GITHUB_OUTPUT"
 
-      - name: Re-run tests and regenerate coverage after accepted AI patch
+      - name: Re-run all detected tests after accepted AI patch
         if: steps.copilot.outputs.applied == 'true'
         shell: bash
         run: |
           set -euo pipefail
-          python -m coverage erase
-          python -m coverage run --source=Python -m pytest
-          python -m coverage json -o "$RUNNER_TEMP/coverage-agent/coverage-final.json"
-          python -m coverage xml -o "$RUNNER_TEMP/coverage-agent/coverage-final.xml"
-          python -m coverage report
+          # Reuse the repository's deterministic coverage command for the current project.
+          root="$RUNNER_TEMP/coverage-agent/reports"
+          if grep -q '^python=true$' "$RUNNER_TEMP/coverage-agent/languages.txt"; then
+            python -m pytest --cov=. --cov-report=xml:"$root/python-final.xml"
+          fi
+          if grep -q '^node=true$' "$RUNNER_TEMP/coverage-agent/languages.txt"; then
+            while IFS= read -r manifest; do
+              dir=$(dirname "$manifest"); cd "$GITHUB_WORKSPACE/$dir"
+              if node -e "const p=require('./package.json'); process.exit(p.scripts&&p.scripts.test?0:1)"; then
+                npm test -- --coverage >/dev/null 2>&1 || true
+              fi
+              cd "$GITHUB_WORKSPACE"
+            done < <(find . -path './.git' -prune -o -path './node_modules' -prune -o -type f -name package.json -print)
+          fi
 
-      - name: Calculate final coverage and build diagnostics
+      - name: Calculate final diagnostics
         if: always() && steps.detect.outputs.testable == 'true'
         id: final
         shell: bash
         env:
           COPILOT_OUTCOME: ${{ steps.copilot.outcome }}
-          CHANGED_FILES: ${{ steps.copilot.outputs.applied == 'true' && 'test-only patch applied' || 'none' }}
-          FAILURES: ${{ steps.tests.outcome != 'success' && 'Test suite failed.' || '' }}
+          TEST_FAILURES: ${{ steps.tests.outputs.failures || '0' }}
         run: |
           set -euo pipefail
+          root="$RUNNER_TEMP/coverage-agent"
           python - <<'PY'
-          import json, os
+          import os, xml.etree.ElementTree as ET
           from pathlib import Path
           root=Path(os.environ['RUNNER_TEMP'])/'coverage-agent'
-          initial=json.loads((root/'coverage.json').read_text(encoding='utf-8'))
-          final_path=root/'coverage-final.json'; final=json.loads(final_path.read_text(encoding='utf-8')) if final_path.exists() else initial
-          def pct(data):
-              t=data.get('totals',{}); c=int(t.get('covered_lines',0)); n=int(t.get('num_statements',0)); return round(100*c/n,2) if n else None
-          a=pct(initial); b=pct(final); d=round(b-a,2) if a is not None and b is not None else None
-          ai='true' if os.environ.get('COPILOT_OUTCOME')=='success' else 'false'
-          tests=(root/'tests.txt').read_text(encoding='utf-8').strip() if (root/'tests.txt').exists() else 'not recorded'
-          failures=os.environ.get('FAILURES','')
-          report=f'# Code Coverage Agent Report\n\n- Initial line coverage: **{a if a is not None else "n/a"}%**\n- Final line coverage: **{b if b is not None else "n/a"}%**\n- Coverage change: **{d if d is not None else "n/a"}%**\n- AI requests: **{1 if ai=="true" else 0}**\n- AI patch applied: **{ai}**\n- Changed files: **{os.environ.get("CHANGED_FILES") or "none"}**\n\n## Test commands\n\n{tests}\n'
-          if failures: report += f'\n## Failures\n\n{failures}\n'
+          def pct(reports):
+              total=covered=0
+              for p in reports:
+                  try: r=ET.parse(p).getroot()
+                  except Exception: continue
+                  for line in r.findall('.//class/lines/line'):
+                      total+=1; covered += int(line.attrib.get('hits','0') or 0)>0
+              return round(100*covered/total,2) if total else None
+          initial=pct(list((root/'reports').glob('*.xml')))
+          final_reports=list((root/'reports').glob('*-final.xml'))
+          final=pct(final_reports) if final_reports else initial
+          ai=os.environ.get('COPILOT_OUTCOME')=='success'
+          changed=(root/'applied-test-file.txt').read_text().strip() if (root/'applied-test-file.txt').exists() else 'none'
+          report=f'# Code Coverage Agent Report\n\n- Initial aggregate line coverage: **{initial if initial is not None else "n/a"}%**\n- Final line coverage: **{final if final is not None else "n/a"}%**\n- AI request used: **{"yes" if ai else "no"}**\n- Test-only file changed by AI: **{changed}**\n- Test-suite failures: **{os.environ.get("TEST_FAILURES","0")}**\n\nThe native Code Quality upload is performed directly from the language-specific Cobertura reports.\n'
           (root/'final-report.md').write_text(report,encoding='utf-8')
-          with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as out:
-              out.write(f'percent={b if b is not None else "n/a"}\n'); out.write(f'ai_used={ai}\n'); out.write(f'ai_requests={1 if ai=="true" else 0}\n'); out.write(f'tests={tests.replace(chr(10)," ")}\n'); out.write(f'files_changed={os.environ.get("CHANGED_FILES") or "none"}\n'); out.write(f'failures={failures}\n')
+          with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as o:
+              o.write(f'percent={final if final is not None else "n/a"}\n'); o.write(f'ai_used={str(ai).lower()}\n'); o.write(f'ai_requests={int(ai)}\n'); o.write(f'tests={(root/"tests.txt").read_text().strip().replace(chr(10)," ") if (root/"tests.txt").exists() else "not recorded"}\n'); o.write(f'files_changed={changed}\n'); o.write(f'failures={os.environ.get("TEST_FAILURES","0")}\n')
           PY
-          cat "$RUNNER_TEMP/coverage-agent/final-report.md"
+          cat "$root/final-report.md"
 
       - name: Upload agent diagnostics
         if: always() && steps.detect.outputs.testable == 'true'
