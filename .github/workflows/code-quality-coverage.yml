@@ -64,7 +64,7 @@ jobs:
             python -m pip install --disable-pip-version-check -r requirements.txt
           fi
           if [ -f pyproject.toml ] || [ -f setup.cfg ] || [ -f setup.py ]; then
-            python -m pip install --disable-pip-version-check . || true
+            python -m pip install --disable-pip-version-check .
           fi
           python -m pip install --disable-pip-version-check coverage pytest
 
@@ -73,10 +73,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if find . -path './.git' -prune -o -path './.venv' -prune -o -type f \( -name 'test_*.py' -o -name '*_test.py' \) -print -quit | grep -q .; then
+          if find . \
+            -path './.git' -prune -o \
+            -path './.venv' -prune -o \
+            -path './node_modules' -prune -o \
+            -path './coverage' -prune -o \
+            -type f \( -name 'test_*.py' -o -name '*_test.py' -o -name 'tests.py' \) -print -quit | grep -q .; then
             python -m coverage run -m pytest
           else
-            python -m coverage run -m unittest discover
+            echo 'No Python test files were found.'
+            exit 1
           fi
           python -m coverage xml -o coverage.xml
 
