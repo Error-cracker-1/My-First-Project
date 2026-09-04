@@ -20,12 +20,22 @@ This repository is a versatile platform integrating beginner-friendly coding pro
 
 This repository is hosted with GitHub Pages:
 
-* Main Landing Page: https://error-cracker-1.github.io/My-First-Project/
-* AI Review Dashboard: https://error-cracker-1.github.io/My-First-Project/dashboard.html
+*   Main Landing Page: https://error-cracker-1.github.io/My-First-Project/
+*   AI Review Dashboard: https://error-cracker-1.github.io/My-First-Project/dashboard.html
 
-## Repository Contents
+## Repository Structure
 
-The repository contains beginner projects and an AI-powered review application, including HTML, CSS, JavaScript, Python, PowerShell, Jupyter Notebook, GitHub Pages files, review scripts, prompts, and the Flask web application.
+This repository is organized into the following key directories:
+
+*   `.devcontainer/`: Configuration files for GitHub Codespaces and VS Code Dev Containers.
+*   `docs/`: Static files hosted on GitHub Pages, including browser-based projects (`Game Pong/Game 1.html`, `Web 1/Web.html`), the main landing page (`index.html`), and the AI review dashboard (`dashboard.html`).
+*   `Jupyter/`: Jupyter Notebook files, such as `Calculator.ipynb`.
+*   `Powershell/`: Contains PowerShell script examples.
+*   `prompts/`: Text files defining prompts used by the AI review system.
+*   `Python/`: A collection of beginner-friendly Python scripts, including a multi-functional calculator.
+*   `scripts/`: Python utilities that power the AI review process, report generation, and dashboard updates.
+*   `tests/`: Python unit tests for various repository components.
+*   `web/`: The Python Flask web application for the AI review and reporting system.
 
 ## Featured Projects
 
@@ -60,7 +70,3 @@ This repository is useful for practicing HTML, CSS, JavaScript, beginner game de
 ## Repository Notes
 
 This is a practice environment containing small exercises alongside more complete applications. The `docs` folder hosts the public GitHub Pages site and AI review dashboard.
-
-## Future Improvements
-
-Possible improvements include enhanced AI review capabilities, more dashboard metrics, additional learning projects, screenshots or GIFs, and API documentation.
