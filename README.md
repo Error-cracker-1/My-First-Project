@@ -28,6 +28,7 @@ This repository is hosted with GitHub Pages:
 This repository is organized into the following key directories:
 
 *   `.devcontainer/`: Configuration files for GitHub Codespaces and VS Code Dev Containers.
+*   `app/applet/`: A component directory containing `package.json` and `generate_mocks.py`, possibly for an applet or mock generation.
 *   `docs/`: Static files hosted on GitHub Pages, including browser-based projects (`Game Pong/Game 1.html`, `Web 1/Web.html`), the main landing page (`index.html`), and the AI review dashboard (`dashboard.html`).
 *   `Jupyter/`: Jupyter Notebook files, such as `Calculator.ipynb`.
 *   `Powershell/`: Contains PowerShell script examples.
@@ -49,11 +50,11 @@ Paths: `web/app.py` and `docs/dashboard.html`.
 
 ### Pong Game
 
-Paths: `docs/Game Pong/Game 1.html` and `Game Pong/Game 1.html`.
+Path: `docs/Game Pong/Game 1.html`.
 
 ### Web 1 Page
 
-Paths: `docs/Web 1/Web.html` and `Web 1/Web.html`.
+Path: `docs/Web 1/Web.html`.
 
 ### Multifunction & Modern Scrollable Calculators
 
