@@ -28,7 +28,8 @@
         "ms-vscode.powershell",
         "ms-vscode.remote-repositories",
         "openai.chatgpt",
-        "vscode-icons-team.vscode-icons"
+        "vscode-icons-team.vscode-icons",
+        "google.google-antigravity"
       ],
       "settings": {
         "editor.formatOnPaste": true,
