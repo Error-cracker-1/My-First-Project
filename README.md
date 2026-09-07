@@ -27,15 +27,17 @@ This repository is hosted with GitHub Pages:
 
 This repository is organized into the following key directories:
 
-*   `.devcontainer/`: Configuration files for GitHub Codespaces and VS Code Dev Containers.
-*   `docs/`: Static files hosted on GitHub Pages, including browser-based projects (`Game Pong/Game 1.html`, `Web 1/Web.html`), the main landing page (`index.html`), and the AI review dashboard (`dashboard.html`).
+*   `.devcontainer/`: Configuration files for GitHub Codespaces and VS Code Dev Containers, including support for the Antigravity CLI.
+*   `AI_REPORT.md`: A dynamically generated report for AI code reviews.
+*   `app/applet/`: A standalone applet component with its own package manifest.
+*   `docs/`: Static files hosted on GitHub Pages, including browser-based projects (`Game Pong/Game 1.html`, `Web 1/Web.html`), the main landing page (`index.html`), the AI review dashboard (`dashboard.html`), and associated styles and utilities.
 *   `Jupyter/`: Jupyter Notebook files, such as `Calculator.ipynb`.
 *   `Powershell/`: Contains PowerShell script examples.
 *   `prompts/`: Text files defining prompts used by the AI review system.
-*   `Python/`: A collection of beginner-friendly Python scripts, including a multi-functional calculator.
+*   `Python/`: A collection of beginner-friendly Python scripts, including various calculators and utility functions.
 *   `scripts/`: Python utilities that power the AI review process, report generation, and dashboard updates.
 *   `tests/`: Python unit tests for various repository components.
-*   `web/`: The Python Flask web application for the AI review and reporting system.
+*   `web/`: The Python Flask web application for the AI review and reporting system, including `static/` for assets and `templates/` for HTML views.
 
 ## Featured Projects
 
@@ -55,9 +57,13 @@ Paths: `docs/Game Pong/Game 1.html` and `Game Pong/Game 1.html`.
 
 Paths: `docs/Web 1/Web.html` and `Web 1/Web.html`.
 
-### Multifunction & Modern Scrollable Calculators
+### Python Scripts and Calculators
 
-Paths: `Python/MultiFunctional Calculator.py` and `Jupyter/Calculator.ipynb`.
+Paths: `Python/` (e.g., `Python/MultiFunctional Calculator.py`, `Python/To Add Three Numbers.py`), `Jupyter/Calculator.ipynb`.
+
+### Applet Component
+
+Path: `app/applet/`
 
 ## Getting Started
 
