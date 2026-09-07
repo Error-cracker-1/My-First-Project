@@ -46,7 +46,8 @@
   },
   "features": {
     "ghcr.io/devcontainers-extra/features/gh-cli:1": {},
-    "ghcr.io/devcontainers-extra/features/git-lfs:1": {}
+    "ghcr.io/devcontainers-extra/features/git-lfs:1": {},
+    "ghcr.io/aqua/devcontainer-antigravity-cli/antigravity-cli:1": {}
   },
   "forwardPorts": [3000],
   "image": "mcr.microsoft.com/devcontainers/universal:2",
