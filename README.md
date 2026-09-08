@@ -27,7 +27,7 @@ This repository is hosted with GitHub Pages:
 
 This repository is organized into the following key directories:
 
-*   `.devcontainer/`: Configuration files for GitHub Codespaces and VS Code Dev Containers, including support for the Antigravity CLI.
+*   `.devcontainer/`: Configuration files for GitHub Codespaces and VS Code Dev Containers, including support for the Antigravity CLI and the Google Antigravity extension.
 *   `AI_REPORT.md`: A dynamically generated report for AI code reviews.
 *   `app/applet/`: A standalone applet component with its own package manifest.
 *   `docs/`: Static files hosted on GitHub Pages, including browser-based projects (`Game Pong/Game 1.html`, `Web 1/Web.html`), the main landing page (`index.html`), the AI review dashboard (`dashboard.html`), and associated styles and utilities.
