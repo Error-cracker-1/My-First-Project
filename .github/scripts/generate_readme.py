@@ -1,9 +1,11 @@
 import os
 import re
 import subprocess
+import time
 from pathlib import Path
 
 from google import genai
+from google.genai import errors
 
 ROOT = Path.cwd()
 README = ROOT / "README.md"
@@ -233,10 +235,29 @@ if not api_key:
     raise SystemExit("GOOGLE_API_KEY is missing from repository secrets.")
 
 client = genai.Client(api_key=api_key)
-response = client.models.generate_content(
-    model="gemini-3.8-flash",
-    contents=prompt,
-)
+MAX_RETRIES = 5
+INITIAL_DELAY = 15
+
+for attempt in range(1, MAX_RETRIES + 1):
+    try:
+        response = client.models.generate_content(
+            model="gemini-3.8-flash",
+            contents=prompt,
+        )
+        break
+    except errors.ServerError as exc:
+        status_code = getattr(exc, "status_code", None)
+        if status_code != 503 or attempt == MAX_RETRIES:
+            raise
+        delay = INITIAL_DELAY * (2 ** (attempt - 1))
+        print(
+            f"Gemini returned 503 UNAVAILABLE (attempt {attempt}/{MAX_RETRIES}). "
+            f"Retrying in {delay}s..."
+        )
+        time.sleep(delay)
+else:
+    raise SystemExit("Gemini request failed after all retries.")
+
 generated = (response.text or "").strip()
 
 if generated.startswith("```"):
