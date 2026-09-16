@@ -247,13 +247,9 @@ for attempt in range(1, MAX_RETRIES + 1):
         break
     except errors.ServerError as exc:
         status_code = getattr(exc, "status_code", None)
-<<<<<<< HEAD
         message = str(exc)
         is_503 = status_code == 503 or "503 UNAVAILABLE" in message
         if not is_503 or attempt == MAX_RETRIES:
-=======
-        if status_code != 503 or attempt == MAX_RETRIES:
->>>>>>> origin/feature-1
             raise
         delay = INITIAL_DELAY * (2 ** (attempt - 1))
         print(
