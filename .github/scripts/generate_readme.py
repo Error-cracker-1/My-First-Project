@@ -104,10 +104,6 @@ def restore_and_sync_action_badges(original, generated):
     """Preserve every existing Actions badge and add badges for newly discovered workflows."""
     existing = extract_action_badges(original)
     generated_badges = extract_action_badges(generated)
-
-    # Existing badges are authoritative and are never deleted, even if their workflow
-    # file is later removed. Generated badge lines are replaced by canonical badges
-    # derived from actual workflow files so the model cannot invent workflow badges.
     badges = list(existing)
     known_keys = {badge_workflow_key(line) for line in badges if badge_workflow_key(line)}
 
@@ -117,15 +113,13 @@ def restore_and_sync_action_badges(original, generated):
             badges.append(badge)
             known_keys.add(key)
 
-    branch = os.environ.get("GITHUB_REF_NAME", "")
+    branch = os.environ.get("TARGET_BRANCH", os.environ.get("GITHUB_REF_NAME", ""))
     for badge in discover_workflow_badges(branch):
         key = badge_workflow_key(badge)
         if key and key not in known_keys:
             badges.append(badge)
             known_keys.add(key)
 
-    # Remove all Actions badge lines from the model output before placing the
-    # authoritative union in one dedicated section.
     lines = [line for line in generated.splitlines() if not ACTION_BADGE_RE.match(line.strip())]
     heading_index = next(
         (i for i, line in enumerate(lines) if line.strip().lower() == "## github actions"),
@@ -136,12 +130,10 @@ def restore_and_sync_action_badges(original, generated):
         return "\n".join(lines).strip()
 
     if heading_index is None:
-        # Insert the section after the title when the model omitted it.
         insert_at = 1 if lines and lines[0].startswith("#") else 0
         section = ["", "## GitHub Actions", "", *badges, ""]
         lines[insert_at:insert_at] = section
     else:
-        # Replace the section's old badge lines while preserving any explanatory text.
         end = heading_index + 1
         while end < len(lines) and not (
             lines[end].startswith("## ") and lines[end].strip().lower() != "## github actions"
