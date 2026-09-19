@@ -19,20 +19,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  generate-readme:
-    name: Generate README (${{ matrix.branch }})
+  generate-master:
+    name: Generate README (master)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        branch:
-          - master
-          - feature-1
     steps:
-      - name: Checkout target branch
+      - name: Checkout master
         uses: actions/checkout@v4
         with:
-          ref: ${{ matrix.branch }}
+          ref: master
           fetch-depth: 0
 
       - name: Set up Python
@@ -46,8 +40,8 @@ jobs:
       - name: Generate README
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          TARGET_BRANCH: ${{ matrix.branch }}
-          BEFORE_SHA: ${{ matrix.branch == github.ref_name && github.event.before || '' }}
+          TARGET_BRANCH: master
+          BEFORE_SHA: ${{ github.ref_name == 'master' && github.event.before || '' }}
         run: python .github/scripts/generate_readme.py
 
       - name: Validate README-only change
@@ -62,16 +56,72 @@ jobs:
             exit 1
           fi
 
-      - name: Commit and push README
+      - name: Commit and push README to master
         shell: bash
         run: |
           set -euo pipefail
           if git diff --quiet -- README.md; then
-            echo "README is already up to date on ${{ matrix.branch }}."
+            echo "README is already up to date on master."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add README.md
           git commit -m "docs: automatically update README"
-          git push origin "HEAD:${{ matrix.branch }}"
+          git push origin HEAD:master
+
+  generate-feature-1:
+    name: Generate README (feature-1)
+    needs: generate-master
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait 10 seconds after master
+        run: sleep 10
+
+      - name: Checkout feature-1
+        uses: actions/checkout@v4
+        with:
+          ref: feature-1
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Gemini SDK
+        run: python -m pip install --disable-pip-version-check google-genai
+
+      - name: Generate README
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          TARGET_BRANCH: feature-1
+          BEFORE_SHA: ${{ github.ref_name == 'feature-1' && github.event.before || '' }}
+        run: python .github/scripts/generate_readme.py
+
+      - name: Validate README-only change
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s README.md
+          changed="$(git diff --name-only)"
+          if [ -n "$changed" ] && [ "$changed" != "README.md" ]; then
+            echo "ERROR: Only README.md may be changed."
+            echo "$changed"
+            exit 1
+          fi
+
+      - name: Commit and push README to feature-1
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- README.md; then
+            echo "README is already up to date on feature-1."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "docs: automatically update README"
+          git push origin HEAD:feature-1
