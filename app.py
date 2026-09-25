@@ -1,28 +1,29 @@
 import os
 from dotenv import load_dotenv
-from openai import OpenAI
+from google import genai
 
 load_dotenv()
 
-api_key = os.getenv("OPENAI_API_KEY")
+api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
-    raise RuntimeError("OPENAI_API_KEY is missing. Add it to your .env file.")
+    raise RuntimeError("GEMINI_API_KEY is missing. Add it to your .env file.")
 
-client = OpenAI(api_key=api_key)
+client = genai.Client(api_key=api_key)
 
 def ask_ai(message: str) -> str:
-    response = client.responses.create(
-        model="gpt-5.5",
-        instructions="You are a helpful and friendly AI chatbot.",
-        input=message,
+    response = client.models.generate_content(
+        model="gemini-3.8-flash",
+        contents=message,
     )
-    return response.output_text
+    return response.text
 
 def main() -> None:
     print("================================")
     print("        AI Chatbot v1.0")
     print("================================")
+    print("Powered by Gemini")
     print("Type 'exit' to quit.\n")
+
     while True:
         user_message = input("You: ").strip()
         if user_message.lower() == "exit":
