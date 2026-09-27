@@ -1,1 +1,150 @@
-# AI Chatbot
+# AI Coding Chatbot
+
+A lightweight command-line AI coding assistant powered by Google's Gemini API. It is designed to help with common software-development tasks across many programming languages.
+
+## Features
+
+- Generate and explain code
+- Debug programming errors
+- Refactor and optimize code
+- Review code and suggest improvements
+- Convert code between programming languages
+- Answer general programming questions
+- Work with Python, JavaScript, TypeScript, Java, C, C++, C#, Go, Rust, PHP, Ruby, Kotlin, Swift, Dart, SQL, HTML, CSS, Bash, PowerShell, and other common languages
+- Switch Gemini models while the chatbot is running
+- Configurable output-token limit to reduce unnecessary API usage
+- No automatic retry after a Gemini quota or rate-limit error
+
+## Current Default Model
+
+The default model is:
+
+`gemini-3.5-flash-lite`
+
+The model can be changed with the `GEMINI_MODEL` environment variable or interactively with `/model`.
+
+## Requirements
+
+- Python 3.10 or newer
+- A Gemini API key
+- Internet access
+- The dependencies listed in `requirements.txt`
+
+## Setup
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Error-cracker-1/My-First-Project.git
+cd My-First-Project
+git checkout AI-Chatbot
+```
+
+### 2. Create a virtual environment
+
+Windows:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+Git Bash:
+
+```bash
+python -m venv .venv
+source .venv/Scripts/activate
+```
+
+### 3. Install dependencies
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### 4. Configure the API key
+
+Copy `.env.example` to `.env`:
+
+```bash
+cp .env.example .env
+```
+
+Then open `.env` and replace the placeholder value:
+
+```text
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+Optional settings:
+
+```text
+GEMINI_MODEL=gemini-3.5-flash-lite
+GEMINI_MAX_OUTPUT_TOKENS=2048
+```
+
+**Never commit your real `.env` file or API key to GitHub.** The repository's `.gitignore` excludes `.env`.
+
+## Run the Chatbot
+
+```bash
+python app.py
+```
+
+You will see a prompt similar to:
+
+```text
+You:
+```
+
+Enter a programming question or task and press Enter.
+
+## Commands
+
+| Command | Purpose |
+|---|---|
+| `/model` | Open the interactive model selector |
+| `/models` | Open the interactive model selector |
+| `/exit` | Exit the chatbot |
+
+## Quota and Rate-Limit Handling
+
+The chatbot does not automatically retry requests when Gemini reports a quota or rate-limit error. This prevents an error from immediately causing additional API requests.
+
+If you repeatedly receive `429`, `RESOURCE_EXHAUSTED`, or quota-related errors, check the Gemini API project quota and usage in Google AI Studio. Limits can vary by model and usage tier.
+
+Reducing `GEMINI_MAX_OUTPUT_TOKENS` can limit the maximum amount of generated output per request, although it does not remove request-rate or daily-request limits.
+
+## Project Files
+
+| File | Description |
+|---|---|
+| `app.py` | Main command-line chatbot |
+| `requirements.txt` | Python dependencies |
+| `.env.example` | Environment-variable template |
+| `.gitignore` | Prevents local environment files and Python cache files from being committed |
+
+## Security
+
+- Keep API keys in `.env`.
+- Do not paste API keys into source code.
+- Do not commit `.env`.
+- If an API key is accidentally exposed, revoke or rotate it promptly.
+
+## Development Workflow
+
+This project is developed on the `AI-Chatbot` branch.
+
+Changes are intended to follow this workflow:
+
+1. Make a focused change.
+2. Test the change.
+3. Commit the change.
+4. Push the branch.
+5. Continue with the next improvement.
+
+Version tags are used for tagged releases on the `AI-Chatbot` branch. This README-only commit intentionally has **no tag**, as requested.
+
+## License
+
+No license has been specified for this project yet.
