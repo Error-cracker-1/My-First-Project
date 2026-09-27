@@ -38,10 +38,9 @@ when necessary. Keep answers concise unless the user asks for more detail.
 """
 
 
-def ask_ai(message: str, model: str) -> str:
-    response = client.models.generate_content(
+def create_chat(model: str):
+    return client.chats.create(
         model=model,
-        contents=message,
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_INSTRUCTION,
             max_output_tokens=MAX_OUTPUT_TOKENS,
@@ -52,6 +51,10 @@ def ask_ai(message: str, model: str) -> str:
             ),
         ),
     )
+
+
+def ask_ai(message: str, chat) -> str:
+    response = chat.send_message(message)
     return response.text
 
 
@@ -80,13 +83,16 @@ def main() -> None:
         print(f"Unknown GEMINI_MODEL '{current_model}'. Using {DEFAULT_MODEL}.")
         current_model = DEFAULT_MODEL
 
+    chat = create_chat(current_model)
+
     print("================================")
-    print("        AI Coding Chatbot v1.2")
+    print("        AI Coding Chatbot v1.3")
     print("================================")
     print("Powered by Gemini")
     print(f"Model: {current_model}")
     print(f"Max output tokens: {MAX_OUTPUT_TOKENS}")
     print("Commands: /model, /models, /exit")
+    print("Conversation context is preserved during this session.")
     print("Supports many programming languages, not just Python.\n")
 
     while True:
@@ -97,14 +103,18 @@ def main() -> None:
             break
 
         if user_message.lower() in {"/model", "/models"}:
-            current_model = choose_model(current_model)
+            selected_model = choose_model(current_model)
+            if selected_model != current_model:
+                current_model = selected_model
+                chat = create_chat(current_model)
+                print("Bot: Started a new conversation with the selected model.\n")
             continue
 
         if not user_message:
             continue
 
         try:
-            print(f"Bot: {ask_ai(user_message, current_model)}\n")
+            print(f"Bot: {ask_ai(user_message, chat)}\n")
         except Exception as error:
             error_text = str(error)
             if "429" in error_text or "RESOURCE_EXHAUSTED" in error_text or "quota" in error_text.lower():
