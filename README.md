@@ -1,5 +1,12 @@
 # AI Coding Chatbot
 
+## GitHub Actions
+
+[![ai-review](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-review.yml/badge.svg?branch=AI-Chatbot)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-review.yml)
+[![codeql](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml/badge.svg?branch=AI-Chatbot)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml)
+[![readme-generator](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml/badge.svg?branch=AI-Chatbot)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml)
+
+
 A lightweight command-line AI coding assistant powered by Google's Gemini API. It is designed to help with common software-development tasks across many programming languages.
 
 ## Features
@@ -143,7 +150,7 @@ Changes are intended to follow this workflow:
 4. Push the branch.
 5. Continue with the next improvement.
 
-Version tags are used for tagged releases on the `AI-Chatbot` branch. This README-only commit intentionally has **no tag**, as requested.
+Version tags are used for tagged releases on the `AI-Chatbot` branch.
 
 ## License
 
