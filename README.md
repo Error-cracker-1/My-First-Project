@@ -6,9 +6,6 @@
 [![codeql](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml/badge.svg?branch=AI-Chatbot)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml)
 [![readme-generator](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml/badge.svg?branch=AI-Chatbot)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml)
 
-
-A lightweight command-line AI coding assistant powered by Google's Gemini API. It is designed to help with common software-development tasks across many programming languages.
-
 ## Features
 
 - Generate and explain code
@@ -21,6 +18,7 @@ A lightweight command-line AI coding assistant powered by Google's Gemini API. I
 - Switch Gemini models while the chatbot is running
 - Configurable output-token limit to reduce unnecessary API usage
 - No automatic retry after a Gemini quota or rate-limit error
+- Persistent conversation sessions during the run
 
 ## Current Default Model
 
