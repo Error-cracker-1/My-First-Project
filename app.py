@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
 
 load_dotenv()
 
@@ -41,10 +42,15 @@ def ask_ai(message: str, model: str) -> str:
     response = client.models.generate_content(
         model=model,
         contents=message,
-        config={
-            "system_instruction": SYSTEM_INSTRUCTION,
-            "max_output_tokens": MAX_OUTPUT_TOKENS,
-        },
+        config=types.GenerateContentConfig(
+            system_instruction=SYSTEM_INSTRUCTION,
+            max_output_tokens=MAX_OUTPUT_TOKENS,
+            # This chatbot currently has no tools/functions, so automatic
+            # function calling is unnecessary and can produce an SDK warning.
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(
+                disable=True
+            ),
+        ),
     )
     return response.text
 
