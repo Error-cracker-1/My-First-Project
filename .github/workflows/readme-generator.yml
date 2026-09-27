@@ -1,12 +1,10 @@
-
 name: README Generator (AI-Chatbot)
 
 on:
   push:
-    branches:
-      - AI-Chatbot
+    branches: ["AI-Chatbot"]
     paths-ignore:
-      - README.md
+      - "README.md"
   workflow_dispatch:
 
 permissions:
@@ -14,11 +12,11 @@ permissions:
 
 concurrency:
   group: readme-generator-ai-chatbot
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
-  generate-ai-chatbot:
-    name: Generate README (AI-Chatbot)
+  generate:
+    name: Generate README
     runs-on: ubuntu-latest
     steps:
       - name: Checkout AI-Chatbot
@@ -26,22 +24,20 @@ jobs:
         with:
           ref: AI-Chatbot
           fetch-depth: 0
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
+          cache: "pip"
       - name: Install Gemini SDK
-        run: python -m pip install --disable-pip-version-check google-genai
-
-      - name: Generate README
+        run: python -m pip install --disable-pip-version-check --quiet google-genai
+      - name: Update README when needed
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           TARGET_BRANCH: AI-Chatbot
-          BEFORE_SHA: ${{ github.ref_name == 'AI-Chatbot' && github.event.before || '' }}
+          BEFORE_SHA: ${{ github.event.before }}
+          GITHUB_SHA: ${{ github.sha }}
         run: python .github/scripts/generate_readme.py
-
       - name: Validate README-only change
         shell: bash
         run: |
@@ -49,17 +45,16 @@ jobs:
           test -s README.md
           changed="$(git diff --name-only)"
           if [ -n "$changed" ] && [ "$changed" != "README.md" ]; then
-            echo "ERROR: Only README.md may be changed."
+            echo "ERROR: README generator changed files other than README.md:"
             echo "$changed"
             exit 1
           fi
-
-      - name: Commit and push README to AI-Chatbot
+      - name: Commit README if changed
         shell: bash
         run: |
           set -euo pipefail
           if git diff --quiet -- README.md; then
-            echo "README is already up to date on AI-Chatbot."
+            echo "README is already up to date."
             exit 0
           fi
           git config user.name "github-actions[bot]"
