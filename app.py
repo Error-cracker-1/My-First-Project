@@ -77,6 +77,18 @@ def choose_model(current_model: str) -> str:
     return selected_model
 
 
+def print_history(history) -> None:
+    if not history:
+        print("Bot: No conversation history yet.\n")
+        return
+
+    print("\n========== Conversation History ==========")
+    for index, (user_message, bot_message) in enumerate(history, start=1):
+        print(f"\n[{index}] You: {user_message}")
+        print(f"    Bot: {bot_message}")
+    print("\n===========================================\n")
+
+
 def main() -> None:
     current_model = os.getenv("GEMINI_MODEL", DEFAULT_MODEL)
     if current_model not in {model_id for _, model_id in MODELS.values()}:
@@ -84,37 +96,52 @@ def main() -> None:
         current_model = DEFAULT_MODEL
 
     chat = create_chat(current_model)
+    history = []
 
     print("================================")
-    print("        AI Coding Chatbot v1.3")
+    print("        AI Coding Chatbot v1.4")
     print("================================")
     print("Powered by Gemini")
     print(f"Model: {current_model}")
     print(f"Max output tokens: {MAX_OUTPUT_TOKENS}")
-    print("Commands: /model, /models, /exit")
+    print("Commands: /model, /models, /history, /clear, /exit")
     print("Conversation context is preserved during this session.")
     print("Supports many programming languages, not just Python.\n")
 
     while True:
         user_message = input("You: ").strip()
+        command = user_message.lower()
 
-        if user_message.lower() in {"/exit", "exit"}:
+        if command in {"/exit", "exit"}:
             print("Bot: Goodbye!")
             break
 
-        if user_message.lower() in {"/model", "/models"}:
+        if command in {"/model", "/models"}:
             selected_model = choose_model(current_model)
             if selected_model != current_model:
                 current_model = selected_model
                 chat = create_chat(current_model)
+                history.clear()
                 print("Bot: Started a new conversation with the selected model.\n")
+            continue
+
+        if command == "/history":
+            print_history(history)
+            continue
+
+        if command == "/clear":
+            chat = create_chat(current_model)
+            history.clear()
+            print("Bot: Conversation history cleared. Started a new conversation.\n")
             continue
 
         if not user_message:
             continue
 
         try:
-            print(f"Bot: {ask_ai(user_message, chat)}\n")
+            bot_message = ask_ai(user_message, chat)
+            history.append((user_message, bot_message))
+            print(f"Bot: {bot_message}\n")
         except Exception as error:
             error_text = str(error)
             if "429" in error_text or "RESOURCE_EXHAUSTED" in error_text or "quota" in error_text.lower():
