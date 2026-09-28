@@ -19,6 +19,7 @@
 - Configurable output-token limit to reduce unnecessary API usage
 - No automatic retry after a Gemini quota or rate-limit error
 - Persistent conversation sessions during the run
+- View conversation history and clear conversation state
 
 ## Current Default Model
 
@@ -110,6 +111,8 @@ Enter a programming question or task and press Enter.
 |---|---|
 | `/model` | Open the interactive model selector |
 | `/models` | Open the interactive model selector |
+| `/history` | View the conversation history |
+| `/clear` | Clear conversation history and start a new conversation |
 | `/exit` | Exit the chatbot |
 
 ## Quota and Rate-Limit Handling
