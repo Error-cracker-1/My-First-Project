@@ -131,6 +131,7 @@ Reducing `GEMINI_MAX_OUTPUT_TOKENS` can limit the maximum amount of generated ou
 | `requirements.txt` | Python dependencies |
 | `.env.example` | Environment-variable template |
 | `.gitignore` | Prevents local environment files and Python cache files from being committed |
+| `scripts/html_dashboard.py` | Static HTML dashboard generation script for the Daily AI Review project |
 
 ## Security
 
