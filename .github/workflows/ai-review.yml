@@ -6,6 +6,7 @@ on:
       - AI-Chatbot
     paths-ignore:
       - "AI-Chatbot-Review/**"
+      - "docs/**"
 
   workflow_dispatch:
     inputs:
@@ -86,6 +87,10 @@ jobs:
 
           if [ -d "AI-Chatbot-Review" ]; then
             git add AI-Chatbot-Review/
+          fi
+
+          if [ -d "docs" ]; then
+            git add docs/
           fi
 
           if git diff --cached --quiet; then
