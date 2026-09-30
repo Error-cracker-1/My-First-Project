@@ -6,7 +6,7 @@ from pathlib import Path
 
 REVIEW_ARTIFACTS_DIR = Path("AI-Chatbot-Review")
 AI_REPORT_PATH = REVIEW_ARTIFACTS_DIR / "AI_REPORT.md"
-HTML_DASHBOARD_PATH = REVIEW_ARTIFACTS_DIR / "docs" / "dashboard.html"
+HTML_DASHBOARD_PATH = Path("docs") / "dashboard.html"
 REPORTS_DIR = REVIEW_ARTIFACTS_DIR / "reports"
 GENERATED_BY = "Daily AI Review"
 
@@ -126,7 +126,7 @@ def _review_rows_html(rows: list[dict[str, any]]) -> str:
     for r in rows:
         html.append(f"""
         <tr>
-          <td><a href="../reports/{Path(r['path']).name}">{escape(Path(r['path']).name)}</a></td>
+          <td><a href="../AI-Chatbot-Review/reports/{Path(r['path']).name}">{escape(Path(r['path']).name)}</a></td>
           <td>{escape(r['display_date'])}</td>
           <td><span class="badge-model">{escape(r['model'])}</span></td>
           <td><strong>{escape(r['health'])}</strong></td>
@@ -568,9 +568,6 @@ def generate_html_dashboard(commit_title: str = "Not generated", commit_body: st
     doc_content = _html_document(report_content=report_content, commit_title=commit_title, commit_body=commit_body)
     HTML_DASHBOARD_PATH.write_text(doc_content, encoding="utf-8")
     
-    reports_dashboard = REVIEW_ARTIFACTS_DIR / "docs" / "dashboard.html"
-    reports_dashboard.parent.mkdir(parents=True, exist_ok=True)
-    reports_dashboard.write_text(doc_content, encoding="utf-8")
     return HTML_DASHBOARD_PATH
 
 if __name__ == "__main__":
