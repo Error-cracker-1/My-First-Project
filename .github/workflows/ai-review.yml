@@ -1,6 +1,12 @@
 name: Daily AI Review
 
 on:
+  push:
+    branches:
+      - AI-Chatbot
+    paths-ignore:
+      - "AI-Chatbot-Review/**"
+
   workflow_dispatch:
     inputs:
       review_mode:
