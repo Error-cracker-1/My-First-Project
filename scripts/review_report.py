@@ -9,7 +9,8 @@ import subprocess
 from .config import MODEL as FALLBACK_MODEL
 from .report import ReviewStatistics
 
-REPORTS_DIR = Path("reports")
+REVIEW_ARTIFACTS_DIR = Path("AI-Chatbot-Review")
+REPORTS_DIR = REVIEW_ARTIFACTS_DIR / "reports"
 GENERATED_BY = "Daily AI Review"
 
 
