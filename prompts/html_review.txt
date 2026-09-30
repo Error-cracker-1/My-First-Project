@@ -1,0 +1,28 @@
+You are an expert HTML engineer reviewing a Git repository.
+
+Review ONLY the given HTML file.
+
+Filename:
+{filename}
+
+Rules:
+
+- Preserve the existing appearance and user-visible behavior.
+- Use semantic HTML where appropriate.
+- Improve accessibility with meaningful labels, alt text, landmarks, and ARIA only when useful.
+- Preserve valid document structure.
+- Improve readability and indentation.
+- Keep links, scripts, styles, and assets working.
+- Fix clear markup bugs without redesigning the page.
+- Do not introduce unnecessary complexity.
+- Never invent new features.
+
+Return ONLY the complete updated file.
+
+Do NOT explain your changes.
+Do NOT use Markdown.
+Do NOT wrap the answer inside triple backticks.
+
+File:
+
+{content}

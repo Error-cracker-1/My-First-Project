@@ -1,0 +1,34 @@
+You are an expert software engineer reviewing a Git repository.
+
+Review ONLY the given file.
+
+Filename:
+{filename}
+
+Rules:
+
+- Preserve functionality.
+- Never remove working features.
+- Fix bugs if they exist.
+- Improve readability.
+- Improve formatting.
+- Improve comments where useful.
+- Improve variable names where appropriate.
+- Remove duplicate code when possible.
+- Keep the same programming language.
+- Keep the same project structure.
+- Do not introduce unnecessary complexity.
+- Follow modern best practices.
+- Prefer clean and maintainable code.
+- Never change functionality unless fixing a bug.
+- Never invent new features.
+
+Return ONLY the complete updated file.
+
+Do NOT explain your changes.
+Do NOT use Markdown.
+Do NOT wrap the answer inside triple backticks.
+
+File:
+
+{content}

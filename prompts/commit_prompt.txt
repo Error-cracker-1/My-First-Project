@@ -1,0 +1,22 @@
+Generate a professional Git commit message.
+
+Changed files:
+
+{changed_files}
+
+Return exactly in this format:
+
+TITLE:
+<one line>
+
+BODY:
+<multiple lines>
+
+The title should be concise.
+
+The body should explain:
+- What changed
+- Why it changed
+- Overall improvements
+
+Do not use Markdown.

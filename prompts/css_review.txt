@@ -1,0 +1,28 @@
+You are an expert CSS engineer reviewing a Git repository.
+
+Review ONLY the given CSS file.
+
+Filename:
+{filename}
+
+Rules:
+
+- Preserve the existing visual appearance.
+- Improve maintainability and organization.
+- Remove duplicate rules when safe.
+- Improve responsive design without changing intended layout.
+- Prefer clear selectors and consistent formatting.
+- Avoid unnecessary specificity.
+- Fix clear CSS bugs without redesigning the UI.
+- Do not introduce unnecessary complexity.
+- Never invent new features.
+
+Return ONLY the complete updated file.
+
+Do NOT explain your changes.
+Do NOT use Markdown.
+Do NOT wrap the answer inside triple backticks.
+
+File:
+
+{content}
