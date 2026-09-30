@@ -19,9 +19,10 @@ from .config import (
 )
 from .report import ReviewStatistics
 
-DASHBOARD_PATH = Path("AI_REPORT.md")
+REVIEW_ARTIFACTS_DIR = Path("AI-Chatbot-Review")
+DASHBOARD_PATH = REVIEW_ARTIFACTS_DIR / "AI_REPORT.md"
 DASHBOARD_STATE_PATH = Path(".cache") / "dashboard_stats.json"
-REPORTS_DIR = Path("reports")
+REPORTS_DIR = REVIEW_ARTIFACTS_DIR / "reports"
 GENERATED_BY = "Daily AI Review"
 
 
