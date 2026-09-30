@@ -71,3 +71,20 @@ jobs:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
           python -m scripts.ai_review ${{ steps.mode.outputs.mode }}
+
+      - name: Commit and push AI review artifacts
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ -d "AI-Chatbot-Review" ]; then
+            git add AI-Chatbot-Review/
+          fi
+
+          if git diff --cached --quiet; then
+            echo "No AI review artifacts to commit."
+          else
+            git commit -m "docs: save AI review artifacts"
+            git push origin HEAD:AI-Chatbot
+          fi
