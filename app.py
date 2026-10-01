@@ -3,13 +3,13 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
+from config import ChatbotConfig
+
+
 load_dotenv()
 
-api_key = os.getenv("GEMINI_API_KEY")
-if not api_key:
-    raise RuntimeError("GEMINI_API_KEY is missing. Add it to your .env file.")
-
-client = genai.Client(api_key=api_key)
+config = ChatbotConfig.from_env()
+client = genai.Client(api_key=config.api_key)
 
 # Current stable Gemini models suitable for coding assistance.
 # The default is the cost-efficient 3.5 Flash-Lite model.
@@ -22,8 +22,8 @@ MODELS = {
     "6": ("Gemini 2.5 Flash", "gemini-2.5-flash"),
 }
 
-DEFAULT_MODEL = "gemini-3.5-flash-lite"
-MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_MAX_OUTPUT_TOKENS", "2048"))
+DEFAULT_MODEL = config.model
+MAX_OUTPUT_TOKENS = config.max_output_tokens
 
 SYSTEM_INSTRUCTION = """You are a general-purpose programming and software-development assistant.
 You can work with Python, JavaScript, TypeScript, Java, C, C++, C#, Go, Rust, PHP,
@@ -90,20 +90,18 @@ def print_history(history) -> None:
 
 
 def main() -> None:
-    current_model = os.getenv("GEMINI_MODEL", DEFAULT_MODEL)
-    if current_model not in {model_id for _, model_id in MODELS.values()}:
-        print(f"Unknown GEMINI_MODEL '{current_model}'. Using {DEFAULT_MODEL}.")
-        current_model = DEFAULT_MODEL
+    current_model = config.model
 
     chat = create_chat(current_model)
     history = []
 
     print("================================")
-    print("        AI Coding Chatbot v1.4")
+    print("        AI Coding Chatbot v1.5")
     print("================================")
     print("Powered by Gemini")
     print(f"Model: {current_model}")
     print(f"Max output tokens: {MAX_OUTPUT_TOKENS}")
+    print("Configuration loaded from environment variables.")
     print("Commands: /model, /models, /history, /clear, /exit")
     print("Conversation context is preserved during this session.")
     print("Supports many programming languages, not just Python.\n")
