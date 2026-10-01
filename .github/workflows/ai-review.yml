@@ -25,6 +25,13 @@ on:
 permissions:
   contents: write
 
+# Prevent multiple AI-review runs from pushing review artifacts
+# to AI-Chatbot at the same time. A newer run waits for the
+# currently running review instead of cancelling it.
+concurrency:
+  group: ai-review-AI-Chatbot
+  cancel-in-progress: false
+
 jobs:
   ai-review:
     runs-on: ubuntu-latest
@@ -82,6 +89,8 @@ jobs:
       - name: Commit and push AI review artifacts
         shell: bash
         run: |
+          set -e
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
@@ -95,7 +104,40 @@ jobs:
 
           if git diff --cached --quiet; then
             echo "No AI review artifacts to commit."
-          else
-            git commit -m "docs: save AI review artifacts"
-            git push origin HEAD:AI-Chatbot
+            exit 0
           fi
+
+          git commit -m "docs: save AI review artifacts"
+
+          # Another push can happen while the AI review is running.
+          # Fetch the newest branch, rebase the review commit on it,
+          # then retry the push if the remote moves again.
+          for attempt in 1 2 3 4 5; do
+            echo "=============================================="
+            echo "AI review artifact push attempt: $attempt/5"
+            echo "=============================================="
+
+            git fetch origin AI-Chatbot
+
+            if ! git rebase origin/AI-Chatbot; then
+              echo "Rebase failed. Aborting rebase..."
+              git rebase --abort || true
+              echo "Waiting 5 seconds before retry..."
+              sleep 5
+              continue
+            fi
+
+            if git push origin HEAD:AI-Chatbot; then
+              echo "AI review artifacts pushed successfully."
+              exit 0
+            fi
+
+            if [ "$attempt" -lt 5 ]; then
+              echo "Remote branch changed during push."
+              echo "Waiting 5 seconds before retry..."
+              sleep 5
+            fi
+          done
+
+          echo "Failed to push AI review artifacts after 5 attempts."
+          exit 1
