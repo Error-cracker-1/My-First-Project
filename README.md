@@ -128,6 +128,7 @@ Reducing `GEMINI_MAX_OUTPUT_TOKENS` can limit the maximum amount of generated ou
 | File | Description |
 |---|---|
 | `app.py` | Main command-line chatbot |
+| `config.py` | Configuration management and environment validation |
 | `requirements.txt` | Python dependencies |
 | `.env.example` | Environment-variable template |
 | `.gitignore` | Prevents local environment files and Python cache files from being committed |
