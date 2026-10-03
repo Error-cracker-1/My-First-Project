@@ -1,0 +1,86 @@
+name: AI Chatbot Release Bundle
+
+on:
+  push:
+    tags:
+      - '*.*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ai-chatbot-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag is on AI-Chatbot
+        shell: bash
+        run: |
+          git fetch origin AI-Chatbot --depth=1
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" "origin/AI-Chatbot"; then
+            echo "Tag $GITHUB_REF_NAME does not point to a commit contained in AI-Chatbot."
+            exit 1
+          fi
+
+      - name: Build AI Chatbot runtime bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TAG="$GITHUB_REF_NAME"
+          ROOT="AI-Chatbot-\${TAG}"
+          ZIP="AI-Chatbot-\${TAG}-bundle.zip"
+
+          rm -rf "$ROOT" "$ZIP"
+          mkdir -p "$ROOT"
+
+          cp README.md app.py config.py requirements.txt .env.example "$ROOT"/
+
+          if [ -d prompts ]; then
+            cp -R prompts "$ROOT"/
+          fi
+
+          if [ -d scripts ]; then
+            cp -R scripts "$ROOT"/
+          fi
+
+          if [ -d docs ]; then
+            cp -R docs "$ROOT"/
+          fi
+
+          zip -qr "$ZIP" "$ROOT"
+
+          echo "Created $ZIP"
+          unzip -l "$ZIP"
+
+      - name: Create draft release and attach bundle
+        env:
+          GH_TOKEN: \${{ github.token }}
+        shell: bash
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "AI-Chatbot-$GITHUB_REF_NAME-bundle.zip#AI Chatbot runtime bundle" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "$GITHUB_REF_NAME :- AI Chatbot Release" \
+            --generate-notes \
+            --draft
+
+      - name: Publish release
+        env:
+          GH_TOKEN: \${{ github.token }}
+        shell: bash
+        run: |
+          gh release edit "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --draft=false
