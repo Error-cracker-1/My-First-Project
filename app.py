@@ -8,8 +8,7 @@ from config import ChatbotConfig
 
 load_dotenv()
 
-# Current stable Gemini models suitable for coding assistance.
-# The default is the cost-efficient 3.5 Flash-Lite model.
+# Models supported by the configuration system.
 MODELS = {
     "1": ("Gemini 3.5 Flash-Lite", "gemini-3.5-flash-lite"),
     "2": ("Gemini 3.5 Flash", "gemini-3.5-flash"),
@@ -17,6 +16,15 @@ MODELS = {
     "4": ("Gemini 3.1 Flash-Lite", "gemini-3.1-flash-lite"),
     "5": ("Gemini 2.5 Flash-Lite", "gemini-2.5-flash-lite"),
     "6": ("Gemini 2.5 Flash", "gemini-2.5-flash"),
+}
+
+MODEL_ALIASES = {
+    "flash-lite": "gemini-3.5-flash-lite",
+    "flash": "gemini-3.5-flash",
+    "flash-3.6": "gemini-3.6-flash",
+    "flash-lite-3.1": "gemini-3.1-flash-lite",
+    "flash-lite-2.5": "gemini-2.5-flash-lite",
+    "flash-2.5": "gemini-2.5-flash",
 }
 
 config = ChatbotConfig.from_env()
@@ -39,7 +47,7 @@ when necessary. Keep answers concise unless the user asks for more detail.
 
 
 def create_chat(model: str):
-    """Create a Gemini chat and let callers handle API failures gracefully."""
+    """Create a Gemini chat using the current configuration."""
     return client.chats.create(
         model=model,
         config=types.GenerateContentConfig(
@@ -84,7 +92,7 @@ def classify_error(error: Exception) -> str:
     if (
         "404" in error_text
         or "not found" in lower_text
-        or "model" in lower_text and "not found" in lower_text
+        or ("model" in lower_text and "not found" in lower_text)
     ):
         return (
             "The selected Gemini model is unavailable. "
@@ -128,57 +136,91 @@ def ask_ai(message: str, chat):
         return None, classify_error(error)
 
 
-def choose_model(current_model: str) -> str:
-    print("\nAvailable Gemini models:")
-    for key, (name, model_id) in MODELS.items():
-        marker = " (current)" if model_id == current_model else ""
-        print(f"{key}. {name} [{model_id}]{marker}")
+def model_display_name(model_id: str) -> str:
+    """Return the friendly name for a model ID."""
+    for name, configured_id in MODELS.values():
+        if configured_id == model_id:
+            return name
+    return model_id
 
-    choice = input("Select model (1-6), or press Enter to keep current: ").strip()
+
+def choose_model(current_model: str) -> str:
+    print("\n========== Model Manager ==========")
+    print(f"Current model: {model_display_name(current_model)}")
+    print(f"Model ID:      {current_model}\n")
+
+    for key, (name, model_id) in MODELS.items():
+        marker = " [CURRENT]" if model_id == current_model else ""
+        print(f"{key}. {name}{marker}")
+        print(f"   ID: {model_id}")
+
+    print("\nAliases:")
+    print("  flash-lite  -> Gemini 3.5 Flash-Lite")
+    print("  flash       -> Gemini 3.5 Flash")
+    print("  flash-3.6   -> Gemini 3.6 Flash")
+
+    choice = input("\nSelect 1-6, enter an alias, or press Enter to keep current: ").strip().lower()
     if not choice:
         return current_model
 
-    if choice not in MODELS:
-        print("Invalid model selection. Keeping the current model.")
-        return current_model
+    if choice in MODELS:
+        return MODELS[choice][1]
 
-    selected_name, selected_model = MODELS[choice]
-    print(f"Switched to {selected_name}.")
-    return selected_model
+    if choice in MODEL_ALIASES:
+        return MODEL_ALIASES[choice]
+
+    print("Invalid model selection. Keeping the current model.")
+    return current_model
 
 
-def print_history(history) -> None:
+def print_history(history, model: str) -> None:
     if not history:
-        print("Bot: No conversation history yet.\n")
+        print(f"Bot: No conversation history for {model_display_name(model)} yet.\n")
         return
 
-    print("\n========== Conversation History ==========")
+    print(f"\n========== History: {model_display_name(model)} ==========")
     for index, (user_message, bot_message) in enumerate(history, start=1):
         print(f"\n[{index}] You: {user_message}")
         print(f"    Bot: {bot_message}")
     print("\n===========================================\n")
 
 
+def print_model_status(current_model: str, sessions) -> None:
+    print("\n========== Model Status ==========")
+    print(f"Active: {model_display_name(current_model)}")
+    print(f"ID:     {current_model}")
+    print(f"Stored model sessions: {len(sessions)}")
+    for model_id, (_, history) in sessions.items():
+        print(f"  - {model_display_name(model_id)}: {len(history)} messages")
+    print("==================================\n")
+
+
 def main() -> None:
     current_model = config.model
-    chat = safe_create_chat(current_model)
+    initial_chat = safe_create_chat(current_model)
 
-    if chat is None:
+    if initial_chat is None:
         print("Bot: Chat startup failed. Check your configuration and try again.")
         return
 
-    history = []
+    # Keep a separate chat and local history for each selected model.
+    # Switching models no longer destroys the previous model's session.
+    sessions = {
+        current_model: (initial_chat, []),
+    }
 
     print("================================")
-    print("        AI Coding Chatbot v1.6")
+    print("        AI Coding Chatbot v1.7")
     print("================================")
     print("Powered by Gemini")
-    print(f"Model: {current_model}")
+    print(f"Model: {model_display_name(current_model)}")
+    print(f"Model ID: {current_model}")
     print(f"Max output tokens: {MAX_OUTPUT_TOKENS}")
     print("Configuration loaded from environment variables.")
     print("Improved error handling is enabled.")
-    print("Commands: /model, /models, /history, /clear, /exit")
-    print("Conversation context is preserved during this session.")
+    print("Enhanced model switching is enabled.")
+    print("Commands: /model, /models, /current, /history, /clear, /exit")
+    print("Conversation sessions are preserved separately for each model.")
     print("Supports many programming languages, not just Python.\n")
 
     while True:
@@ -196,31 +238,55 @@ def main() -> None:
 
         if command in {"/model", "/models"}:
             selected_model = choose_model(current_model)
-            if selected_model != current_model:
-                new_chat = safe_create_chat(selected_model)
-                if new_chat is None:
-                    print("Bot: Model switch failed. Keeping the current model.\n")
-                    continue
+            if selected_model == current_model:
+                continue
 
+            if selected_model in sessions:
+                chat, _ = sessions[selected_model]
                 current_model = selected_model
-                chat = new_chat
-                history.clear()
-                print("Bot: Started a new conversation with the selected model.\n")
+                print(
+                    f"Bot: Switched to {model_display_name(current_model)}. "
+                    "Previous session restored.\n"
+                )
+                continue
+
+            new_chat = safe_create_chat(selected_model)
+            if new_chat is None:
+                print("Bot: Model switch failed. Keeping the current model.\n")
+                continue
+
+            sessions[selected_model] = (new_chat, [])
+            current_model = selected_model
+            print(
+                f"Bot: Switched to {model_display_name(current_model)}. "
+                "A new session was created for this model.\n"
+            )
             continue
 
+        if command == "/current":
+            print_model_status(current_model, sessions)
+            continue
+
+        chat, history = sessions[current_model]
+
         if command == "/history":
-            print_history(history)
+            print_history(history, current_model)
             continue
 
         if command == "/clear":
             new_chat = safe_create_chat(current_model)
             if new_chat is None:
-                print("Bot: Could not clear the conversation because a new chat could not be created.\n")
+                print(
+                    "Bot: Could not clear the conversation because a new "
+                    "chat could not be created.\n"
+                )
                 continue
 
-            chat = new_chat
-            history.clear()
-            print("Bot: Conversation history cleared. Started a new conversation.\n")
+            sessions[current_model] = (new_chat, [])
+            print(
+                f"Bot: {model_display_name(current_model)} conversation "
+                "history cleared.\n"
+            )
             continue
 
         if not user_message:
