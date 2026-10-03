@@ -45,19 +45,6 @@ jobs:
           mkdir -p "$ROOT"
 
           cp README.md app.py config.py requirements.txt .env.example "$ROOT"/
-
-          if [ -d prompts ]; then
-            cp -R prompts "$ROOT"/
-          fi
-
-          if [ -d scripts ]; then
-            cp -R scripts "$ROOT"/
-          fi
-
-          if [ -d docs ]; then
-            cp -R docs "$ROOT"/
-          fi
-
           zip -qr "$ZIP" "$ROOT"
 
           echo "Created $ZIP"
