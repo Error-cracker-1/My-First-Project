@@ -11,8 +11,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: readme-generator-ai-chatbot
-  cancel-in-progress: true
+  group: ai-chatbot-automation
+  cancel-in-progress: false
 
 jobs:
   generate:
