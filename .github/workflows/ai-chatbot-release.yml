@@ -38,8 +38,8 @@ jobs:
           set -euo pipefail
 
           TAG="$GITHUB_REF_NAME"
-          ROOT="AI-Chatbot-\${TAG}"
-          ZIP="AI-Chatbot-\${TAG}-bundle.zip"
+          ROOT="AI-Chatbot-${TAG}"
+          ZIP="AI-Chatbot-${TAG}-bundle.zip"
 
           rm -rf "$ROOT" "$ZIP"
           mkdir -p "$ROOT"
@@ -52,7 +52,7 @@ jobs:
 
       - name: Create draft release and attach bundle
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           gh release create "$GITHUB_REF_NAME" \
@@ -65,7 +65,7 @@ jobs:
 
       - name: Publish release
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           gh release edit "$GITHUB_REF_NAME" \
