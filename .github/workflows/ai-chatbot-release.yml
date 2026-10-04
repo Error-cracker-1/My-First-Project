@@ -38,36 +38,56 @@ jobs:
           set -euo pipefail
 
           TAG="$GITHUB_REF_NAME"
+          BUNDLE_DIR="$RUNNER_TEMP/ai-chatbot-release"
           ROOT="AI-Chatbot-${TAG}"
-          ZIP="AI-Chatbot-${TAG}-bundle.zip"
+          ZIP="$BUNDLE_DIR/AI-Chatbot-${TAG}-bundle.zip"
 
-          rm -rf "$ROOT" "$ZIP"
+          rm -rf "$BUNDLE_DIR"
           mkdir -p "$ROOT"
+          mkdir -p "$BUNDLE_DIR"
 
           cp README.md app.py config.py requirements.txt .env.example "$ROOT"/
-          zip -qr "$ZIP" "$ROOT"
+          (
+            cd "$BUNDLE_DIR"
+            zip -qr "$(basename "$ZIP")" "$(basename "$ROOT")"
+          )
 
-          echo "Created $ZIP"
+          test -f "$ZIP"
+          echo "Created: $ZIP"
           unzip -l "$ZIP"
 
-      - name: Create draft release and attach bundle
+      - name: Create or update draft release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh release create "$GITHUB_REF_NAME" \
-            "AI-Chatbot-$GITHUB_REF_NAME-bundle.zip#AI Chatbot runtime bundle" \
-            --repo "$GITHUB_REPOSITORY" \
-            --target "$GITHUB_SHA" \
-            --title "$GITHUB_REF_NAME :- AI Chatbot Release" \
-            --generate-notes \
-            --draft
+          set -euo pipefail
+
+          TAG="$GITHUB_REF_NAME"
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; updating it."
+            gh release edit "$TAG"               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title "$TAG :- AI Chatbot Release"               --draft=true
+          else
+            echo "Creating draft release $TAG."
+            gh release create "$TAG"               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title "$TAG :- AI Chatbot Release"               --generate-notes               --draft
+          fi
+
+      - name: Upload AI Chatbot runtime bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ZIP="$RUNNER_TEMP/ai-chatbot-release/AI-Chatbot-$GITHUB_REF_NAME-bundle.zip"
+          test -f "$ZIP"
+
+          gh release upload "$GITHUB_REF_NAME"             "$ZIP#AI Chatbot runtime bundle"             --repo "$GITHUB_REPOSITORY"             --clobber
 
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh release edit "$GITHUB_REF_NAME" \
-            --repo "$GITHUB_REPOSITORY" \
-            --draft=false
+          gh release edit "$GITHUB_REF_NAME"             --repo "$GITHUB_REPOSITORY"             --draft=false
