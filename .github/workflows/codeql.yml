@@ -8,6 +8,10 @@ on:
   schedule:
     - cron: "32 10 * * 2"
 
+concurrency:
+  group: ai-chatbot-automation
+  cancel-in-progress: false
+
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
