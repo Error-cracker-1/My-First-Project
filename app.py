@@ -1,5 +1,4 @@
-import os
-from dotenv import load_dotenv
+import os\nfrom pathlib import Path\nfrom dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
@@ -10,21 +9,31 @@ load_dotenv()
 
 # Models supported by the configuration system.
 MODELS = {
-    "1": ("Gemini 3.5 Flash-Lite", "gemini-3.5-flash-lite"),
-    "2": ("Gemini 3.5 Flash", "gemini-3.5-flash"),
+    "1": ("Gemini 3.8 Flash", "gemini-3.8-flash"),
+    "2": ("Gemini 3.7 Flash", "gemini-3.7-flash"),
     "3": ("Gemini 3.6 Flash", "gemini-3.6-flash"),
-    "4": ("Gemini 3.1 Flash-Lite", "gemini-3.1-flash-lite"),
-    "5": ("Gemini 2.5 Flash-Lite", "gemini-2.5-flash-lite"),
-    "6": ("Gemini 2.5 Flash", "gemini-2.5-flash"),
+    "4": ("Gemini 3.5 Flash", "gemini-3.5-flash"),
+    "5": ("Gemini 3.5 Flash-Lite", "gemini-3.5-flash-lite"),
+    "6": ("Gemini 3.1 Flash-Lite", "gemini-3.1-flash-lite"),
+    "7": ("Gemini 3.1 Pro Preview", "gemini-3.1-pro-preview"),
+    "8": ("Gemini 3 Flash Preview", "gemini-3-flash-preview"),
+    "9": ("Gemini 2.5 Pro", "gemini-2.5-pro"),
+    "10": ("Gemini 2.5 Flash", "gemini-2.5-flash"),
+    "11": ("Gemini 2.5 Flash-Lite", "gemini-2.5-flash-lite"),
 }
 
 MODEL_ALIASES = {
-    "flash-lite": "gemini-3.5-flash-lite",
+    "3.8": "gemini-3.8-flash",
+    "3.7": "gemini-3.7-flash",
+    "3.6": "gemini-3.6-flash",
     "flash": "gemini-3.5-flash",
-    "flash-3.6": "gemini-3.6-flash",
-    "flash-lite-3.1": "gemini-3.1-flash-lite",
-    "flash-lite-2.5": "gemini-2.5-flash-lite",
-    "flash-2.5": "gemini-2.5-flash",
+    "flash-lite": "gemini-3.5-flash-lite",
+    "3.1-lite": "gemini-3.1-flash-lite",
+    "3.1-pro": "gemini-3.1-pro-preview",
+    "3-flash": "gemini-3-flash-preview",
+    "2.5-pro": "gemini-2.5-pro",
+    "2.5-flash": "gemini-2.5-flash",
+    "2.5-lite": "gemini-2.5-flash-lite",
 }
 
 config = ChatbotConfig.from_env()
@@ -173,6 +182,71 @@ def choose_model(current_model: str) -> str:
     return current_model
 
 
+MAX_FILE_SIZE = 512 * 1024
+SUPPORTED_FILE_EXTENSIONS = {
+    ".py", ".js", ".jsx", ".ts", ".tsx", ".java", ".c", ".h", ".cpp", ".cc",
+    ".cxx", ".hpp", ".cs", ".go", ".rs", ".php", ".rb", ".kt", ".kts", ".swift",
+    ".dart", ".sql", ".html", ".htm", ".css", ".scss", ".sass", ".less",
+    ".json", ".xml", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".txt", ".md",
+    ".ps1", ".psm1", ".bat", ".cmd", ".sh", ".bash", ".zsh", ".fish",
+    ".vue", ".svelte", ".astro",
+}
+
+
+def detect_language(path: Path) -> str:
+    if path.name.lower() == "dockerfile":
+        return "dockerfile"
+    labels = {
+        ".py": "python", ".js": "javascript", ".jsx": "jsx", ".ts": "typescript",
+        ".tsx": "tsx", ".java": "java", ".c": "c", ".h": "c", ".cpp": "cpp",
+        ".cc": "cpp", ".cxx": "cpp", ".hpp": "cpp", ".cs": "csharp",
+        ".go": "go", ".rs": "rust", ".php": "php", ".rb": "ruby",
+        ".kt": "kotlin", ".kts": "kotlin", ".swift": "swift", ".dart": "dart",
+        ".sql": "sql", ".html": "html", ".htm": "html", ".css": "css",
+        ".scss": "scss", ".sass": "sass", ".less": "less", ".json": "json",
+        ".xml": "xml", ".yaml": "yaml", ".yml": "yaml", ".toml": "toml",
+        ".md": "markdown", ".ps1": "powershell", ".sh": "bash", ".bash": "bash",
+        ".zsh": "zsh", ".fish": "fish", ".bat": "batch", ".cmd": "batch",
+        ".vue": "vue", ".svelte": "svelte", ".astro": "astro", ".txt": "text",
+    }
+    return labels.get(path.suffix.lower(), "text")
+
+
+def read_code_file(file_path: str):
+    path = Path(file_path.strip().strip('"')).expanduser()
+    if not path.exists():
+        return None, "File not found."
+    if not path.is_file():
+        return None, "The supplied path is not a file."
+    if path.stat().st_size > MAX_FILE_SIZE:
+        return None, "File is larger than the 512 KB v1.8 input limit."
+    if path.suffix.lower() not in SUPPORTED_FILE_EXTENSIONS and path.name.lower() != "dockerfile":
+        return None, "Unsupported file type. Use a text or source-code file."
+    try:
+        content = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        return None, "The file is not valid UTF-8 text."
+    except OSError as error:
+        return None, f"Could not read the file: {error}"
+    language = detect_language(path)
+    return (
+        f"File: {path.name}\nPath: {path}\nLanguage: {language}\n\n"
+        f"~~~{language}\n{content}\n~~~",
+        None,
+    )
+
+
+def send_file_to_ai(file_path: str, chat):
+    file_context, error = read_code_file(file_path)
+    if error:
+        return None, error
+    prompt = (
+        "A local source/text file has been provided for analysis. "
+        "Do not execute it. Use it as context for the user's request.\n\n"
+        + file_context
+    )
+    return ask_ai(prompt, chat)
+
 def print_history(history, model: str) -> None:
     if not history:
         print(f"Bot: No conversation history for {model_display_name(model)} yet.\n")
@@ -210,7 +284,7 @@ def main() -> None:
     }
 
     print("================================")
-    print("        AI Coding Chatbot v1.7")
+    print("        AI Coding Chatbot v1.8")
     print("================================")
     print("Powered by Gemini")
     print(f"Model: {model_display_name(current_model)}")
@@ -218,8 +292,8 @@ def main() -> None:
     print(f"Max output tokens: {MAX_OUTPUT_TOKENS}")
     print("Configuration loaded from environment variables.")
     print("Improved error handling is enabled.")
-    print("Enhanced model switching is enabled.")
-    print("Commands: /model, /models, /current, /history, /clear, /exit")
+    print("Enhanced model switching is enabled.")\n    print("File/code input is enabled (512 KB UTF-8 text/source limit).")
+    print("Commands: /model, /models, /file, /current, /history, /clear, /exit")
     print("Conversation sessions are preserved separately for each model.")
     print("Supports many programming languages, not just Python.\n")
 
@@ -287,6 +361,26 @@ def main() -> None:
                 f"Bot: {model_display_name(current_model)} conversation "
                 "history cleared.\n"
             )
+            continue
+
+        if command == "/file":
+            file_path = input("File path: ").strip()
+            bot_message, error_message = send_file_to_ai(file_path, chat)
+            if error_message:
+                print(f"Bot: {error_message}\n")
+                continue
+            history.append((f"[File input] {file_path}", bot_message))
+            print(f"Bot: {bot_message}\n")
+            continue
+
+        if command.startswith("/file "):
+            file_path = user_message[6:].strip()
+            bot_message, error_message = send_file_to_ai(file_path, chat)
+            if error_message:
+                print(f"Bot: {error_message}\n")
+                continue
+            history.append((f"[File input] {file_path}", bot_message))
+            print(f"Bot: {bot_message}\n")
             continue
 
         if not user_message:
