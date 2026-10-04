@@ -2,6 +2,7 @@
 
 ## GitHub Actions
 
+[![ai-chatbot-release](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-chatbot-release.yml/badge.svg?branch=AI-Chatbot)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-chatbot-release.yml)
 [![ai-review](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-review.yml/badge.svg?branch=AI-Chatbot)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-review.yml)
 [![codeql](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml/badge.svg?branch=AI-Chatbot)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml)
 [![readme-generator](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml/badge.svg?branch=AI-Chatbot)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml)
