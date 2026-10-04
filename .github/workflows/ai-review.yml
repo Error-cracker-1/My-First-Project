@@ -29,7 +29,7 @@ permissions:
 # to AI-Chatbot at the same time. A newer run waits for the
 # currently running review instead of cancelling it.
 concurrency:
-  group: ai-review-AI-Chatbot
+  group: ai-chatbot-automation
   cancel-in-progress: false
 
 jobs:
