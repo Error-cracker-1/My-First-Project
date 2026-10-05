@@ -3,6 +3,7 @@ from google import genai
 from google.genai import types
 
 from config import ChatbotConfig
+from conversation_store import ConversationStore, ConversationStoreError
 
 
 load_dotenv()
@@ -38,6 +39,7 @@ MODEL_ALIASES = {
 
 config = ChatbotConfig.from_env()
 client = genai.Client(api_key=config.api_key)
+conversation_store = ConversationStore()
 
 DEFAULT_MODEL = config.model
 MAX_OUTPUT_TOKENS = config.max_output_tokens
@@ -55,10 +57,17 @@ when necessary. Keep answers concise unless the user asks for more detail.
 """
 
 
-def create_chat(model: str):
-    """Create a Gemini chat using the current configuration."""
+def create_chat(model: str, history=None):
+    """Create a Gemini chat, optionally restoring saved history."""
+    gemini_history = []
+    for user_message, bot_message in history or []:
+        gemini_history.extend([
+            types.Content(role="user", parts=[types.Part(text=user_message)]),
+            types.Content(role="model", parts=[types.Part(text=bot_message)]),
+        ])
     return client.chats.create(
         model=model,
+        history=gemini_history or None,
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_INSTRUCTION,
             max_output_tokens=MAX_OUTPUT_TOKENS,
@@ -125,10 +134,10 @@ def classify_error(error: Exception) -> str:
     return "Unexpected Gemini error. The conversation is still available."
 
 
-def safe_create_chat(model: str):
+def safe_create_chat(model: str, history=None):
     """Create a chat without allowing an API failure to terminate the program."""
     try:
-        return create_chat(model)
+        return create_chat(model, history)
     except Exception as error:
         print(f"Bot: Unable to start the Gemini chat. {classify_error(error)}")
         return None
@@ -269,6 +278,40 @@ def print_model_status(current_model: str, sessions) -> None:
     print("==================================\n")
 
 
+
+def save_current_conversation(name: str, model: str, history) -> None:
+    if not history:
+        print("Bot: There is no conversation to save yet.\\n")
+        return
+    try:
+        path = conversation_store.save(name, model, history)
+        print(f"Bot: Conversation saved as '{path.stem}'.\\n")
+    except ConversationStoreError as error:
+        print(f"Bot: Could not save the conversation. {error}\\n")
+
+
+def load_conversation(name: str, sessions, current_model: str) -> str:
+    try:
+        saved = conversation_store.load(name)
+        supported = {model_id for _, model_id in MODELS.values()}
+        if saved["model"] not in supported:
+            raise ConversationStoreError("The saved conversation uses an unsupported model.")
+        chat = safe_create_chat(saved["model"], saved["history"])
+        if chat is None:
+            return current_model
+        sessions[saved["model"]] = (chat, saved["history"])
+        print(f"Bot: Loaded '{saved['name']}' with {len(saved['history'])} message pairs using {model_display_name(saved['model'])}.\\n")
+        return saved["model"]
+    except ConversationStoreError as error:
+        print(f"Bot: Could not load the conversation. {error}\\n")
+        return current_model
+
+
+def conversation_name(command: str, prompt: str) -> str:
+    name = command.partition(" ")[2].strip()
+    return name or input(prompt).strip()
+
+
 def main() -> None:
     current_model = config.model
     initial_chat = safe_create_chat(current_model)
@@ -284,7 +327,7 @@ def main() -> None:
     }
 
     print("================================")
-    print("        AI Coding Chatbot v1.8")
+    print("        AI Coding Chatbot v1.9")
     print("================================")
     print("Powered by Gemini")
     print(f"Model: {model_display_name(current_model)}")
@@ -293,7 +336,9 @@ def main() -> None:
     print("Configuration loaded from environment variables.")
     print("Improved error handling is enabled.")
     print("Enhanced model switching is enabled.")\n    print("File/code input is enabled (512 KB UTF-8 text/source limit).")
-    print("Commands: /model, /models, /file, /current, /history, /clear, /exit")
+    print("Conversation save/load is enabled.")
+    print("Commands: /model, /models, /file, /current, /history, /clear, /save, /load, /saves, /exit")
+    print("Saved conversations are stored locally and are not committed to Git.")
     print("Conversation sessions are preserved separately for each model.")
     print("Supports many programming languages, not just Python.\n")
 
@@ -361,6 +406,32 @@ def main() -> None:
                 f"Bot: {model_display_name(current_model)} conversation "
                 "history cleared.\n"
             )
+            continue
+
+        if command == "/save" or command.startswith("/save "):
+            name = conversation_name(user_message, "Save conversation as: ")
+            if name:
+                save_current_conversation(name, current_model, history)
+            continue
+
+        if command == "/load" or command.startswith("/load "):
+            name = conversation_name(user_message, "Load conversation: ")
+            if name:
+                current_model = load_conversation(name, sessions, current_model)
+            continue
+
+        if command == "/saves":
+            try:
+                names = conversation_store.list_names()
+                if not names:
+                    print("Bot: No saved conversations yet.\\n")
+                else:
+                    print("\\n========== Saved Conversations ==========")
+                    for name in names:
+                        print(f"- {name}")
+                    print("=========================================\\n")
+            except ConversationStoreError as error:
+                print(f"Bot: Could not list saved conversations. {error}\\n")
             continue
 
         if command == "/file":
