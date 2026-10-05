@@ -21,6 +21,10 @@
 - No automatic retry after a Gemini quota or rate-limit error
 - Persistent conversation sessions during the run
 - View conversation history and clear conversation state
+- Save conversations to local JSON files
+- Load saved conversations and restore their Gemini chat context
+- List saved conversations with `/saves`
+- Saved conversation data is excluded from Git
 
 ## Current Default Model
 
@@ -114,7 +118,20 @@ Enter a programming question or task and press Enter.
 | `/models` | Open the interactive model selector |
 | `/history` | View the conversation history |
 | `/clear` | Clear conversation history and start a new conversation |
+| `/save NAME` | Save the current conversation as NAME |
+| `/load NAME` | Load a saved conversation and restore its model/context |
+| `/saves` | List saved conversations |
 | `/exit` | Exit the chatbot |
+
+## Save and Load Conversations
+
+Conversations are stored locally as JSON under `.chatbot_data/conversations/` by default. Set `CHATBOT_STORAGE_DIR` to choose another local directory. The storage directory is ignored by Git.
+
+Each saved conversation includes its model ID, ordered user/assistant message pairs, a UTC timestamp, and a format version. Loading restores the saved Gemini chat context directly, rather than replaying old messages as new API requests.
+
+Missing, corrupted, unsupported, or invalid saves are handled without terminating the chatbot.
+
+Run `python -m unittest -v test_conversation_store.py` to test persistence behavior.
 
 ## Quota and Rate-Limit Handling
 
