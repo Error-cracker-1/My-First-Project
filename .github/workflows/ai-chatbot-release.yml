@@ -38,12 +38,19 @@ jobs:
           set -euo pipefail
           TAG="$GITHUB_REF_NAME"
           BUNDLE_DIR="$RUNNER_TEMP/ai-chatbot-release"
-          ROOT="$BUNDLE_DIR/AI-Chatbot-${TAG}"
-          ZIP="$BUNDLE_DIR/AI-Chatbot-${TAG}-bundle.zip"
+          ROOT="$BUNDLE_DIR/AI-Chatbot-$TAG"
+          ZIP="$BUNDLE_DIR/AI-Chatbot-$TAG-bundle.zip"
+
           rm -rf "$BUNDLE_DIR"
           mkdir -p "$ROOT"
+
           cp app.py config.py conversation_store.py requirements.txt .env.example "$ROOT"/
-          ( cd "$BUNDLE_DIR" && zip -qr "$(basename "$ZIP")" "$(basename "$ROOT")" )
+
+          (
+            cd "$BUNDLE_DIR"
+            zip -qr "$(basename "$ZIP")" "$(basename "$ROOT")"
+          )
+
           test -f "$ZIP"
           echo "Created: $ZIP"
           unzip -l "$ZIP"
@@ -56,6 +63,143 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      - name: Generate complete AI Chatbot release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TAG="$GITHUB_REF_NAME"
+          NOTES="$RUNNER_TEMP/ai-chatbot-release-notes.md"
+
+          PREVIOUS_TAG="$(git tag --sort=-v:refname | grep -vx "$TAG" | head -n 1 || true)"
+
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+            CHANGELOG="$(git log --pretty=format:'- %s (%h)' "$PREVIOUS_TAG..$TAG")"
+            COMPARE_URL="https://github.com/$GITHUB_REPOSITORY/compare/$PREVIOUS_TAG...$TAG"
+          else
+            CHANGELOG="$(git log --pretty=format:'- %s (%h)' "$TAG" -n 30)"
+            COMPARE_URL="https://github.com/$GITHUB_REPOSITORY/commits/$TAG"
+          fi
+
+          if [[ -z "$CHANGELOG" ]]; then
+            CHANGELOG="- No commit messages were found between the release tags."
+          fi
+
+          cat > "$NOTES" <<EOF
+          # AI Chatbot $TAG
+
+          ## What changed
+
+          This release contains the AI Chatbot changes included in tag **$TAG**.
+
+          ### Changelog
+
+          $CHANGELOG
+
+          **Full comparison:** $COMPARE_URL
+
+          ## How to use
+
+          ### 1. Download the AI Chatbot runtime bundle
+
+          Download **AI-Chatbot-$TAG-bundle.zip** from the Assets section of this release.
+
+          The custom bundle contains only the files required by the AI Chatbot runtime:
+          - `app.py` — main chatbot application
+          - `config.py` — environment and model configuration
+          - `conversation_store.py` — local conversation save/load support
+          - `requirements.txt` — Python dependencies
+          - `.env.example` — environment variable template
+
+          It does not include GitHub Actions workflows, repository documentation folders, prompts, scripts, Git history, caches, or saved conversation data.
+
+          ### 2. Extract the bundle
+
+          Extract the ZIP and open a terminal in the extracted `AI-Chatbot-$TAG` folder.
+
+          ### 3. Create a virtual environment
+
+          **Windows:**
+          ```text
+          py -m venv .venv
+          .venv\\Scripts\\activate
+          ```
+
+          **Linux/macOS:**
+          ```text
+          python3 -m venv .venv
+          source .venv/bin/activate
+          ```
+
+          ### 4. Install dependencies
+
+          ```text
+          python -m pip install -r requirements.txt
+          ```
+
+          ### 5. Configure Gemini
+
+          Copy `.env.example` to `.env` and set:
+
+          ```text
+          GEMINI_API_KEY=your_gemini_api_key_here
+          GEMINI_MODEL=gemini-3.5-flash-lite
+          GEMINI_MAX_OUTPUT_TOKENS=2048
+          CHATBOT_STORAGE_DIR=.chatbot_data/conversations
+          ```
+
+          Keep your real API key private. Do not commit `.env` to GitHub.
+
+          ### 6. Start the chatbot
+
+          ```text
+          python app.py
+          ```
+
+          ## Chatbot commands
+
+          | Command | Purpose |
+          |---|---|
+          | `/model` | Select or switch the active Gemini model |
+          | `/models` | Open the model manager |
+          | `/current` | Show the active model and stored model sessions |
+          | `/history` | Show the current conversation history |
+          | `/clear` | Clear the current model's conversation |
+          | `/save` | Save the current conversation |
+          | `/save NAME` | Save using the supplied name |
+          | `/load` | Load a saved conversation |
+          | `/load NAME` | Load a saved conversation by name |
+          | `/saves` | List saved conversations |
+          | `/file` | Enter a source/text file path for AI analysis |
+          | `/file PATH` | Send the specified source/text file to the AI |
+          | `/exit` | Exit the chatbot |
+
+          The chatbot accepts many common programming languages and text/source formats. File input is limited to **512 KB** and UTF-8 text/source files.
+
+          ## Configuration
+
+          The default model is `gemini-3.5-flash-lite`. You can change `GEMINI_MODEL` in `.env` to another model supported by this release.
+
+          `GEMINI_MAX_OUTPUT_TOKENS` controls the maximum generated output length.
+
+          `CHATBOT_STORAGE_DIR` controls where saved conversations are stored locally. Saved conversations are not included in the release bundle.
+
+          ## Release assets
+
+          This release contains:
+          1. **AI-Chatbot-$TAG-bundle.zip** — application-only runtime bundle
+          2. **Source code (zip)** — GitHub-generated repository snapshot
+          3. **Source code (tar.gz)** — GitHub-generated repository snapshot
+          4. **Release attestation** — GitHub-generated release provenance/attestation
+
+          ## Notes
+
+          This release is built from the **AI-Chatbot** branch. The runtime bundle is intentionally separated from repository-only files and workflows.
+          EOF
+
+          echo "Generated complete release notes:"
+          cat "$NOTES"
+
       - name: Create or prepare release
         id: release
         env:
@@ -63,19 +207,26 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
           TAG="$GITHUB_REF_NAME"
+          NOTES="$RUNNER_TEMP/ai-chatbot-release-notes.md"
+
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             IMMUTABLE="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq '.immutable // false')"
+
             if [[ "$IMMUTABLE" == "true" ]]; then
               echo "Release $TAG is already immutable."
-              echo "The runtime bundle was preserved as a workflow artifact instead."
+              echo "The runtime bundle and release metadata cannot be changed."
+              echo "The generated release notes are preserved in the workflow logs."
               echo "can_mutate=false" >> "$GITHUB_OUTPUT"
               exit 0
             fi
-            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG :- AI Chatbot Release" --draft=true
+
+            gh release edit "$TAG"               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title "$TAG :- AI Chatbot Release"               --notes-file "$NOTES"               --draft=true
           else
-            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG :- AI Chatbot Release" --generate-notes --draft
+            gh release create "$TAG"               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title "$TAG :- AI Chatbot Release"               --notes-file "$NOTES"               --draft
           fi
+
           echo "can_mutate=true" >> "$GITHUB_OUTPUT"
 
       - name: Upload AI Chatbot runtime bundle to release
@@ -85,9 +236,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
           ZIP="$RUNNER_TEMP/ai-chatbot-release/AI-Chatbot-$GITHUB_REF_NAME-bundle.zip"
           test -f "$ZIP"
-          gh release upload "$GITHUB_REF_NAME" "$ZIP#AI Chatbot runtime bundle" --repo "$GITHUB_REPOSITORY" --clobber
+
+          gh release upload "$GITHUB_REF_NAME"             "$ZIP#AI Chatbot runtime bundle"             --repo "$GITHUB_REPOSITORY"             --clobber
 
       - name: Publish release
         if: steps.release.outputs.can_mutate == 'true'
@@ -95,4 +248,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft=false
+          gh release edit "$GITHUB_REF_NAME"             --repo "$GITHUB_REPOSITORY"             --draft=false
