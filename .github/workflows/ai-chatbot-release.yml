@@ -184,6 +184,126 @@ jobs:
 
           `CHATBOT_STORAGE_DIR` controls where saved conversations are stored locally. Saved conversations are not included in the release bundle.
 
+
+          ## Command reference
+
+          ### `/model` and `/models`
+          Opens the model manager. It shows the active Gemini model, model IDs, and available configured models. You can select a model by number or supported alias. Switching to a model that already has a session restores that session; otherwise a new session is created.
+
+          Example:
+          ```text
+          You: /model
+          ```
+
+          ### `/current`
+          Shows the current model, its model ID, and the number of locally stored model sessions and messages.
+
+          Example:
+          ```text
+          You: /current
+          ```
+
+          ### `/history`
+          Displays the messages exchanged in the current model session. This is useful for reviewing the current conversation without opening saved files.
+
+          Example:
+          ```text
+          You: /history
+          ```
+
+          ### `/clear`
+          Starts a fresh conversation for the currently selected model. It does not delete conversations that were already saved with `/save`.
+
+          Example:
+          ```text
+          You: /clear
+          ```
+
+          ### `/save`
+          Saves the current conversation locally. If no name is supplied, the chatbot asks you for one.
+
+          Examples:
+          ```text
+          You: /save
+          Save conversation as: my-project
+          ```
+
+          ```text
+          You: /save my-project
+          ```
+
+          Saved conversations are stored in the configured `CHATBOT_STORAGE_DIR` directory as local JSON files.
+
+          ### `/load`
+          Loads a previously saved conversation and restores it using the model stored with that conversation.
+
+          Examples:
+          ```text
+          You: /load
+          Load conversation: my-project
+          ```
+
+          ```text
+          You: /load my-project
+          ```
+
+          ### `/saves`
+          Lists the names of conversations currently saved locally.
+
+          Example:
+          ```text
+          You: /saves
+          ```
+
+          ### `/file`
+          Sends a local source-code or text file to the AI as context for analysis. The chatbot does not execute the supplied file.
+
+          Supported examples include Python, JavaScript, TypeScript, Java, C/C++, C#, Go, Rust, PHP, Ruby, Kotlin, Swift, Dart, SQL, HTML, CSS, JSON, XML, YAML, TOML, Markdown, PowerShell, Bash, Vue, Svelte, Astro, and other configured text/source formats.
+
+          The current file-input limit is **512 KB** and files must be readable as UTF-8 text.
+
+          Examples:
+          ```text
+          You: /file
+          File path: C:\Projects\app.py
+          ```
+
+          ```text
+          You: /file C:\Projects\app.py
+          ```
+
+          ### `/exit`
+          Safely exits the chatbot.
+
+          Example:
+          ```text
+          You: /exit
+          ```
+
+          ## Typical workflow
+
+          A simple first-time workflow is:
+
+          ```text
+          1. Configure .env
+          2. Run: python app.py
+          3. Ask a coding question
+          4. Use /file PATH when code needs analysis
+          5. Use /save NAME to preserve the conversation
+          6. Use /load NAME to continue it later
+          7. Use /model to switch Gemini models
+          8. Use /exit when finished
+          ```
+
+          ## Important behavior
+
+          - Model sessions are kept separately, so switching models does not automatically destroy the previous model session.
+          - Saved conversations are local and are not committed to Git.
+          - `/clear` clears only the active model's current session; it does not remove saved conversations.
+          - File input provides the file as analysis context and does not execute the file.
+          - Gemini/API errors are converted into user-friendly error categories instead of automatically retrying quota failures.
+          - Never put a real `GEMINI_API_KEY` into the repository or release bundle.
+
           ## Release assets
 
           This release contains:
