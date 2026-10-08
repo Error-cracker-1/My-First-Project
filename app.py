@@ -175,9 +175,9 @@ def choose_model(current_model: str) -> str:
     print("\nAliases:")
     print("  flash-lite  -> Gemini 3.5 Flash-Lite")
     print("  flash       -> Gemini 3.5 Flash")
-    print("  flash-3.6   -> Gemini 3.6 Flash")
+    print("  3.6         -> Gemini 3.6 Flash")
 
-    choice = input("\nSelect 1-6, enter an alias, or press Enter to keep current: ").strip().lower()
+    choice = input("\nSelect 1-11, enter an alias, or press Enter to keep current: ").strip().lower()
     if not choice:
         return current_model
 
@@ -327,7 +327,7 @@ def main() -> None:
     }
 
     print("================================")
-    print("        AI Coding Chatbot v1.9")
+    print("        AI Coding Chatbot v2.0")
     print("================================")
     print("Powered by Gemini")
     print(f"Model: {model_display_name(current_model)}")
@@ -336,6 +336,7 @@ def main() -> None:
     print("Configuration loaded from environment variables.")
     print("Improved error handling is enabled.")
     print("Enhanced model switching is enabled.")\n    print("File/code input is enabled (512 KB UTF-8 text/source limit).")
+    print("Web interface: run `python web_app.py` and open http://127.0.0.1:5000")
     print("Conversation save/load is enabled.")
     print("Commands: /model, /models, /file, /current, /history, /clear, /save, /load, /saves, /exit")
     print("Saved conversations are stored locally and are not committed to Git.")
