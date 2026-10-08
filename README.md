@@ -188,3 +188,53 @@ Version tags are used for tagged releases on the `AI-Chatbot` branch.
 ## License
 
 No license has been specified for this project yet.
+
+
+## Web Interface (v2.0)
+
+v2.0 adds a local browser interface while keeping the existing command-line chatbot.
+
+### Start the web interface
+
+Install the dependencies, configure `GEMINI_API_KEY`, then run:
+
+```bash
+python web_app.py
+```
+
+Open **http://127.0.0.1:5000** in your browser.
+
+The Gemini API key remains server-side in the environment; it is not sent to the browser.
+
+### Web features
+
+- Send coding and general programming questions from the browser.
+- Switch between the configured Gemini models.
+- Keep browser conversation history during the session.
+- Start a new conversation with **New chat**.
+- Save and load conversations using the existing local JSON storage.
+- Responsive layout for desktop and mobile browsers.
+- Client and server validation for empty/oversized messages.
+- Loading and error status messages.
+- The existing `python app.py` terminal interface remains available.
+
+### Web API
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/` | GET | Web application |
+| `/api/status` | GET | Current model and session status |
+| `/api/models` | GET | Available Gemini models |
+| `/api/chat` | POST | Send a message |
+| `/api/model` | POST | Switch model |
+| `/api/history` | GET | Read current history |
+| `/api/clear` | POST | Start a new chat |
+| `/api/saves` | GET | List saved conversations |
+| `/api/save` | POST | Save the current conversation |
+| `/api/load` | POST | Load a saved conversation |
+
+Run the web-interface checks with:
+
+```bash
+python -m unittest -v test_web_app.py
+```
