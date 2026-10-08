@@ -189,7 +189,6 @@ Version tags are used for tagged releases on the `AI-Chatbot` branch.
 
 No license has been specified for this project yet.
 
-
 ## Web Interface (v2.0)
 
 v2.0 adds a local browser interface while keeping the existing command-line chatbot.
