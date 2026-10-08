@@ -44,7 +44,8 @@ jobs:
           rm -rf "$BUNDLE_DIR"
           mkdir -p "$ROOT"
 
-          cp app.py config.py conversation_store.py requirements.txt .env.example "$ROOT"/
+          cp app.py web_app.py config.py conversation_store.py requirements.txt .env.example "$ROOT"/
+          cp -R templates static "$ROOT"/
 
           (
             cd "$BUNDLE_DIR"
@@ -105,7 +106,10 @@ jobs:
           Download **AI-Chatbot-$TAG-bundle.zip** from the Assets section of this release.
 
           The custom bundle contains only the files required by the AI Chatbot runtime:
-          - `app.py` — main chatbot application
+          - `app.py` — command-line chatbot application
+          - `web_app.py` — browser-based web interface
+          - `templates/` — web interface HTML
+          - `static/` — web interface CSS and JavaScript
           - `config.py` — environment and model configuration
           - `conversation_store.py` — local conversation save/load support
           - `requirements.txt` — Python dependencies
@@ -152,9 +156,17 @@ jobs:
 
           ### 6. Start the chatbot
 
+          **Command-line interface:**
           ```text
           python app.py
           ```
+
+          **Web interface:**
+          ```text
+          python web_app.py
+          ```
+
+          Then open `http://127.0.0.1:5000` in your browser.
 
           ## Chatbot commands
 
@@ -303,6 +315,10 @@ jobs:
           - File input provides the file as analysis context and does not execute the file.
           - Gemini/API errors are converted into user-friendly error categories instead of automatically retrying quota failures.
           - Never put a real `GEMINI_API_KEY` into the repository or release bundle.
+
+          ## Web interface
+
+          The v2.0 web interface provides browser-based chat, Gemini model switching, conversation history, clearing, save/load support, and the corresponding JSON API endpoints.
 
           ## Release assets
 
