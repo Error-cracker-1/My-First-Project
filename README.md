@@ -25,6 +25,7 @@
 - Load saved conversations and restore their Gemini chat context
 - List saved conversations with `/saves`
 - Saved conversation data is excluded from Git
+- Flask web interface (v2.0)
 
 ## Current Default Model
 
@@ -98,8 +99,16 @@ GEMINI_MAX_OUTPUT_TOKENS=2048
 
 ## Run the Chatbot
 
+Command-line interface:
+
 ```bash
 python app.py
+```
+
+Web interface:
+
+```bash
+python web_app.py
 ```
 
 You will see a prompt similar to:
@@ -146,6 +155,7 @@ Reducing `GEMINI_MAX_OUTPUT_TOKENS` can limit the maximum amount of generated ou
 | File | Description |
 |---|---|
 | `app.py` | Main command-line chatbot |
+| `web_app.py` | Flask web interface |
 | `config.py` | Configuration management and environment validation |
 | `conversation_store.py` | Conversation persistence layer |
 | `requirements.txt` | Python dependencies |
