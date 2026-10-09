@@ -61,7 +61,7 @@ def _sync_active_session(session):
 
 @app.get("/")
 def index():
-    return render_template("index.html", version="2.0")
+    return render_template("index.html", version="2.1")
 
 
 @app.get("/api/status")
@@ -71,7 +71,7 @@ def status():
         return response(
             {
                 "ok": True,
-                "version": "2.0",
+                "version": "2.1",
                 "model": session["model"],
                 "model_name": model_display_name(session["model"]),
                 "history": len(session["history"]),
