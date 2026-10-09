@@ -1,1 +1,61 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI Coding Chatbot v2.0</title><link rel="stylesheet" href="/static/style.css"></head><body><main><header><div><h1>AI Coding Chatbot</h1><p>Web Interface v2.0</p></div><div><select id="model"></select><button id="clear">New chat</button></div></header><section id="chat" aria-live="polite"></section><p id="status"></p><form id="composer"><textarea id="message" maxlength="20000" placeholder="Ask a coding question..." required></textarea><button id="send">Send</button></form><section class="saved"><input id="save-name" maxlength="80" placeholder="Conversation name"><button id="save">Save</button><select id="saves"><option value="">Saved conversations</option></select><button id="load">Load</button></section></main><script src="/static/app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <meta name="description" content="A browser-based AI coding chatbot powered by Gemini.">
+  <title>AI Coding Chatbot v2.1</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script defer src="/static/app.js"></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="AI Coding Chatbot home">
+        <span class="brand-mark" aria-hidden="true">AI</span>
+        <span><strong>AI Coding Chatbot</strong><small>Web workspace · v2.1</small></span>
+      </a>
+      <div class="top-actions">
+        <label class="model-picker"><span>Model</span><select id="model" aria-label="Gemini model"></select></label>
+        <button id="clear" class="button button-secondary" type="button">＋ New chat</button>
+      </div>
+    </header>
+
+    <section class="workspace" aria-label="Chat workspace">
+      <div class="conversation-heading">
+        <div><p class="eyebrow">YOUR WORKSPACE</p><h1>Let's build something.</h1><p class="subheading">Ask questions, explore ideas, or work through code.</p></div>
+        <span class="online-status"><i></i> Ready when you are</span>
+      </div>
+      <section id="chat" class="chat" aria-label="Conversation" aria-live="polite">
+        <div id="welcome" class="welcome-card">
+          <div class="welcome-icon" aria-hidden="true">✳</div>
+          <h2>What are we working on?</h2>
+          <p>Ask a coding question or choose a starting point.</p>
+          <div class="prompt-suggestions">
+            <button type="button" data-prompt="Explain this code step by step">Explain some code <span>↗</span></button>
+            <button type="button" data-prompt="Help me debug a programming error">Debug an error <span>↗</span></button>
+            <button type="button" data-prompt="Suggest ways to improve code readability and performance">Improve my code <span>↗</span></button>
+          </div>
+        </div>
+      </section>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+      <form id="composer" class="composer">
+        <label class="sr-only" for="message">Your message</label>
+        <textarea id="message" maxlength="20000" rows="1" placeholder="Message your AI coding assistant…" required></textarea>
+        <div class="composer-footer"><span>Enter to send · Shift + Enter for a new line</span><button id="send" class="button button-primary" type="submit"><span>Send</span><span aria-hidden="true">↑</span></button></div>
+      </form>
+      <section class="saved-panel" aria-label="Saved conversations">
+        <div class="saved-title"><span aria-hidden="true">▤</span><strong>Saved conversations</strong></div>
+        <input id="save-name" maxlength="80" aria-label="Conversation name" placeholder="Name this conversation">
+        <button id="save" class="button button-secondary" type="button">Save current</button>
+        <select id="saves" aria-label="Choose a saved conversation"><option value="">Choose a saved chat…</option></select>
+        <button id="load" class="button button-secondary" type="button">Load</button>
+      </section>
+      <footer><span>AI Coding Chatbot</span><span>Keep your API key private.</span></footer>
+    </section>
+  </main>
+</body>
+</html>
