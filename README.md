@@ -25,7 +25,7 @@
 - Load saved conversations and restore their Gemini chat context
 - List saved conversations with `/saves`
 - Saved conversation data is excluded from Git
-- Flask web interface (v2.0)
+- Responsive Flask web interface with chat bubbles, syntax-highlighted code, and confirmed new-chat/load controls (v2.1)
 
 ## Current Default Model
 
@@ -189,9 +189,9 @@ Version tags are used for tagged releases on the `AI-Chatbot` branch.
 
 No license has been specified for this project yet.
 
-## Web Interface (v2.0)
+## Web Interface (v2.1)
 
-v2.0 adds a local browser interface while keeping the existing command-line chatbot.
+v2.0 introduced a local browser interface while v2.1 improves the responsive layout, chat bubbles, code-block readability and copy controls, suggested prompts, and confirmation for new-chat/loading saved conversations. The existing command-line chatbot remains available.
 
 ### Start the web interface
 
@@ -213,6 +213,10 @@ The Gemini API key remains server-side in the environment; it is not sent to the
 - Start a new conversation with **New chat**.
 - Save and load conversations using the existing local JSON storage.
 - Responsive layout for desktop and mobile browsers.
+- Distinct user and assistant chat bubbles.
+- Syntax highlighting for fenced code blocks and copy-code buttons.
+- Suggested starter prompts when a conversation is empty.
+- Confirmation before clearing the current chat or replacing it with a saved conversation.
 - Client and server validation for empty/oversized messages.
 - Loading and error status messages.
 - The existing `python app.py` terminal interface remains available.
