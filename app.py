@@ -1,4 +1,6 @@
-import os\nfrom pathlib import Path\nfrom dotenv import load_dotenv
+from pathlib import Path
+
+from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
