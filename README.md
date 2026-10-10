@@ -15,6 +15,7 @@ This repository is a versatile platform integrating beginner-friendly coding pro
 [![CodeQL](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/codeql.yml)
 [![pages-build-deployment](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/pages/pages-build-deployment)
 [![README Generator](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/readme-generator.yml)
+[![AI Chatbot Tag and Release](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-chatbot-tag-release.yml/badge.svg)](https://github.com/Error-cracker-1/My-First-Project/actions/workflows/ai-chatbot-tag-release.yml)
 
 ## Live Website
 
