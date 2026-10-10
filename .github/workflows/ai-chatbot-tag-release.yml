@@ -63,15 +63,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          SOURCE_SHA="$(git rev-parse HEAD)"
           TAG_OBJECT="$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/tags" \
             -f tag="$TAG_NAME" \
             -f message="AI-Chatbot $TAG_NAME" \
-            -f object="$GITHUB_SHA" \
+            -f object="$SOURCE_SHA" \
             -f type=commit --jq .sha)"
           gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
             -f ref="refs/tags/$TAG_NAME" \
             -f sha="$TAG_OBJECT"
-          echo "Created tag $TAG_NAME at AI-Chatbot commit $GITHUB_SHA"
+          echo "Created tag $TAG_NAME at AI-Chatbot commit $SOURCE_SHA"
 
       - name: Build runtime bundle
         env:
