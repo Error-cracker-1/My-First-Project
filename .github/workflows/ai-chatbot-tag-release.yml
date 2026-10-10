@@ -124,7 +124,7 @@ jobs:
             MODEL="${GEMINI_MODEL:-gemini-2.5-flash}"
             COMMITS="$(git log --pretty=format:'- %s (%h)' -n 40)"
             [[ -n "$COMMITS" ]] || COMMITS="No commit messages were available."
-            PROMPT="$(printf '%s\\n' \
+            PROMPT="$(printf '%s\n' \
               'You are the release-note writer for the AI-Chatbot software repository. Produce accurate, polished release metadata based only on the supplied commit messages.' \
               'Do not invent features, fixes, compatibility claims, or security claims. If the evidence is vague, say so plainly.' \
               'Return ONLY valid JSON with exactly two string properties: title and description.' \
