@@ -11,7 +11,11 @@ on:
         required: true
         type: string
       release_title:
-        description: "Optional release title"
+        description: "Optional AI-generated title override"
+        required: false
+        type: string
+      release_description:
+        description: "Optional release description override; otherwise Gemini writes it"
         required: false
         type: string
 
@@ -96,6 +100,59 @@ jobs:
           test -f "$ZIP"
           echo "BUNDLE_PATH=$ZIP" >> "$GITHUB_ENV"
 
+      - name: Generate AI release title and description when missing
+        id: release_text
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          TAG_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+          TITLE_INPUT: ${{ inputs.release_title }}
+          DESCRIPTION_INPUT: ${{ inputs.release_description }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "$TITLE_INPUT" && -n "$DESCRIPTION_INPUT" ]]; then
+            printf '%s' "$TITLE_INPUT" > "$RUNNER_TEMP/release-title.txt"
+            printf '%s' "$DESCRIPTION_INPUT" > "$RUNNER_TEMP/release-description.md"
+          else
+            if [[ -z "${GEMINI_API_KEY:-}" ]]; then
+              echo "::error::Set the GEMINI_API_KEY repository Actions secret to generate missing release title/description with Gemini."
+              exit 1
+            fi
+            MODEL="${GEMINI_MODEL:-gemini-2.5-flash}"
+            COMMITS="$(git log --pretty=format:'- %s (%h)' -n 40)"
+            [[ -n "$COMMITS" ]] || COMMITS="No commit messages were available."
+            PROMPT="$(cat <<EOF
+You are the release-note writer for the AI-Chatbot software repository. Produce accurate, polished release metadata based only on the supplied commit messages. Do not invent features, fixes, compatibility claims, or security claims. If the evidence is vague, say so plainly. Return ONLY valid JSON with exactly two string properties: title and description. The title should be concise and specific, and must not repeat the tag unnecessarily. The Markdown description should explain the user-visible changes, improvements, fixes, and any limitations that can be inferred. Mention that this is AI Chatbot release $TAG_NAME. Include a short runtime bundle section noting that the downloadable bundle contains app.py, web_app.py, config.py, conversation_store.py, requirements.txt, .env.example, templates/, and static/. Do not include secrets.
+
+Tag: $TAG_NAME
+Recent commit messages:
+$COMMITS
+EOF
+)"
+            jq -n --arg prompt "$PROMPT" '{contents:[{parts:[{text:$prompt}]}],generationConfig:{responseMimeType:"application/json",temperature:0.2}}' > "$RUNNER_TEMP/gemini-request.json"
+            HTTP_CODE="$(curl -sS -o "$RUNNER_TEMP/gemini-response.json" -w '%{http_code}' \
+              -H 'Content-Type: application/json' \
+              -X POST "https://generativelanguage.googleapis.com/v1beta/models/$MODEL:generateContent?key=$GEMINI_API_KEY" \
+              --data-binary @"$RUNNER_TEMP/gemini-request.json")"
+            if [[ "$HTTP_CODE" != 2* ]]; then
+              echo "::error::Gemini API request failed with HTTP $HTTP_CODE. Check GEMINI_API_KEY and GEMINI_MODEL."
+              cat "$RUNNER_TEMP/gemini-response.json"
+              exit 1
+            fi
+            AI_JSON="$(jq -er '.candidates[0].content.parts | map(.text // "") | join("")' "$RUNNER_TEMP/gemini-response.json")"
+            AI_TITLE="$(printf '%s' "$AI_JSON" | jq -er '.title | strings | select(length > 0)')"
+            AI_DESCRIPTION="$(printf '%s' "$AI_JSON" | jq -er '.description | strings | select(length > 0)')"
+            printf '%s' "$AI_TITLE" > "$RUNNER_TEMP/release-title.txt"
+            printf '%s' "$AI_DESCRIPTION" > "$RUNNER_TEMP/release-description.md"
+            if [[ -z "$TITLE_INPUT" ]]; then TITLE_INPUT="$AI_TITLE"; fi
+            if [[ -z "$DESCRIPTION_INPUT" ]]; then DESCRIPTION_INPUT="$AI_DESCRIPTION"; fi
+            printf '%s' "$TITLE_INPUT" > "$RUNNER_TEMP/release-title.txt"
+            printf '%s' "$DESCRIPTION_INPUT" > "$RUNNER_TEMP/release-description.md"
+          fi
+          echo "Release title prepared."
+
       - name: Create draft release and upload bundle
         env:
           GH_TOKEN: ${{ github.token }}
@@ -105,30 +162,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TITLE="$RELEASE_TITLE_INPUT"
-          if [[ -z "$TITLE" ]]; then TITLE="$TAG_NAME :- AI Chatbot Release"; fi
+          TITLE="$(cat "$RUNNER_TEMP/release-title.txt")"
+          NOTES="$RUNNER_TEMP/release-description.md"
           if [[ "$EVENT_NAME" == "push" ]] && gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "A release already exists for tag $TAG_NAME; refusing to modify it."
             exit 1
           fi
-          NOTES="$(mktemp)"
-          cat > "$NOTES" <<EOF
-          # AI Chatbot $TAG_NAME
-
-          This release was built from the AI-Chatbot branch.
-
-          ## Runtime bundle
-          Download **AI-Chatbot-$TAG_NAME-bundle.zip** from Assets. It contains the runtime application files only: app.py, web_app.py, config.py, conversation_store.py, requirements.txt, .env.example, templates/, and static/.
-
-          ## Run
-          1. Extract the ZIP.
-          2. Create and activate a Python virtual environment.
-          3. Install dependencies with: python -m pip install -r requirements.txt.
-          4. Copy .env.example to .env and set your private GEMINI_API_KEY.
-          5. Run python app.py or python web_app.py.
-
-          Keep API keys private. Do not commit your real `.env` file.
-          EOF
           gh release create "$TAG_NAME" "$BUNDLE_PATH#AI Chatbot runtime bundle" \
             --repo "$GITHUB_REPOSITORY" \
             --title "$TITLE" \
