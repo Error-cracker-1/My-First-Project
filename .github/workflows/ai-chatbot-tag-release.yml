@@ -33,7 +33,7 @@ jobs:
             echo "Invalid tag name. Enter a simple tag such as 2.1 or v2.1."
             exit 1
           fi
-          if [[ ! "$TAG_NAME" =~ ^[A-Za-z0-9._/-]+$ || "$TAG_NAME" == *..* || "$TAG_NAME" == */ || "$TAG_NAME" == *.lock ]]; then
+          if [[ ! "$TAG_NAME" =~ ^[A-Za-z0-9._-]+$ || "$TAG_NAME" == *..* || "$TAG_NAME" == */ || "$TAG_NAME" == *.lock ]]; then
             echo "Tag name contains unsupported characters."
             exit 1
           fi
@@ -105,17 +105,17 @@ jobs:
           cat > "$NOTES" <<EOF
           # AI Chatbot $TAG_NAME
 
-          This release was built from the `AI-Chatbot` branch.
+          This release was built from the AI-Chatbot branch.
 
           ## Runtime bundle
-          Download **AI-Chatbot-$TAG_NAME-bundle.zip** from Assets. It contains the runtime application files only: `app.py`, `web_app.py`, `config.py`, `conversation_store.py`, `requirements.txt`, `.env.example`, `templates/`, and `static/`.
+          Download **AI-Chatbot-$TAG_NAME-bundle.zip** from Assets. It contains the runtime application files only: app.py, web_app.py, config.py, conversation_store.py, requirements.txt, .env.example, templates/, and static/.
 
           ## Run
           1. Extract the ZIP.
           2. Create and activate a Python virtual environment.
-          3. Install dependencies with `python -m pip install -r requirements.txt`.
-          4. Copy `.env.example` to `.env` and set your private `GEMINI_API_KEY`.
-          5. Run `python app.py` or `python web_app.py`.
+          3. Install dependencies with: python -m pip install -r requirements.txt.
+          4. Copy .env.example to .env and set your private GEMINI_API_KEY.
+          5. Run python app.py or python web_app.py.
 
           Keep API keys private. Do not commit your real `.env` file.
           EOF
