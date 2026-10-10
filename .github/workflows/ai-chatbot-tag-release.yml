@@ -28,7 +28,7 @@ jobs:
     steps:
       - name: Validate tag name
         env:
-          TAG_NAME: ${{ inputs.tag_name }}
+          TAG_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
         shell: bash
         run: |
           set -euo pipefail
@@ -44,13 +44,14 @@ jobs:
       - name: Checkout AI-Chatbot source
         uses: actions/checkout@v6
         with:
-          ref: AI-Chatbot
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'AI-Chatbot' || github.ref }}
           fetch-depth: 0
 
       - name: Ensure tag does not already exist
+        if: github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG_NAME: ${{ inputs.tag_name }}
+          TAG_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
         shell: bash
         run: |
           set -euo pipefail
@@ -60,6 +61,7 @@ jobs:
           fi
 
       - name: Create annotated tag on AI-Chatbot commit
+        if: github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ inputs.tag_name }}
@@ -99,11 +101,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ inputs.tag_name }}
           RELEASE_TITLE_INPUT: ${{ inputs.release_title }}
+          EVENT_NAME: ${{ github.event_name }}
         shell: bash
         run: |
           set -euo pipefail
           TITLE="$RELEASE_TITLE_INPUT"
           if [[ -z "$TITLE" ]]; then TITLE="$TAG_NAME :- AI Chatbot Release"; fi
+          if [[ "$EVENT_NAME" == "push" ]] && gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "A release already exists for tag $TAG_NAME; refusing to modify it."
+            exit 1
+          fi
           NOTES="$(mktemp)"
           cat > "$NOTES" <<EOF
           # AI Chatbot $TAG_NAME
