@@ -31,12 +31,14 @@ This repository is organized into the following key directories:
 *   `AI_REPORT.md`: A dynamically generated report for AI code reviews.
 *   `app/applet/`: A standalone applet component with its own package manifest.
 *   `docs/`: Static files hosted on GitHub Pages, including browser-based projects (`Game Pong/Game 1.html`, `Web 1/Web.html`), the main landing page (`index.html`), the AI review dashboard (`dashboard.html`), and associated styles and utilities.
+*   `Game Pong/`: Root-level source files for the Pong game (`Game 1.html`).
 *   `Jupyter/`: Jupyter Notebook files, such as `Calculator.ipynb`.
-*   `Powershell/`: Contains PowerShell script examples.
+*   `Powershell/`: Contains PowerShell script examples (`Test.ps1`, `Test 1.ps1`, `Test 2.ps1`).
 *   `prompts/`: Text files defining prompts used by the AI review system.
 *   `Python/`: A collection of beginner-friendly Python scripts, including various calculators and utility functions.
 *   `scripts/`: Python utilities that power the AI review process, report generation, and dashboard updates.
 *   `tests/`: Python unit tests for various repository components.
+*   `Web 1/`: Root-level HTML source file (`Web.html`).
 *   `web/`: The Python Flask web application for the AI review and reporting system, including `static/` for assets and `templates/` for HTML views.
 
 ## Featured Projects
@@ -59,7 +61,7 @@ Paths: `docs/Web 1/Web.html` and `Web 1/Web.html`.
 
 ### Python Scripts and Calculators
 
-Paths: `Python/` (e.g., `Python/MultiFunctional Calculator.py`, `Python/To Add Three Numbers.py`), `Jupyter/Calculator.ipynb`.
+Paths: `Python/` (e.g., `Python/MultiFunctional Calculator.py`, `Python/To Add Three Numbers.py`, `Python/subtractor.py`), `Jupyter/Calculator.ipynb`.
 
 ### Applet Component
 
