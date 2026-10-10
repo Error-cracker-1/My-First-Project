@@ -1,6 +1,9 @@
 name: AI Chatbot Tag and Release
 
 on:
+  push:
+    tags:
+      - "**"
   workflow_dispatch:
     inputs:
       tag_name:
