@@ -104,7 +104,7 @@ jobs:
       - name: Generate AI release title and description when missing
         id: release_text
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
           TAG_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
           TITLE_INPUT: ${{ inputs.release_title }}
@@ -117,8 +117,8 @@ jobs:
             printf '%s' "$TITLE_INPUT" > "$RUNNER_TEMP/release-title.txt"
             printf '%s' "$DESCRIPTION_INPUT" > "$RUNNER_TEMP/release-description.md"
           else
-            if [[ -z "${GEMINI_API_KEY:-}" ]]; then
-              echo "::error::Set the GEMINI_API_KEY repository Actions secret to generate missing release title/description with Gemini."
+            if [[ -z "${GOOGLE_API_KEY:-}" ]]; then
+              echo "::error::Set the GOOGLE_API_KEY repository Actions secret to generate missing release title/description with Gemini."
               exit 1
             fi
             MODEL="${GEMINI_MODEL:-gemini-2.5-flash}"
@@ -140,10 +140,10 @@ jobs:
             jq -n --arg prompt "$PROMPT" '{contents:[{parts:[{text:$prompt}]}],generationConfig:{responseMimeType:"application/json",temperature:0.2}}' > "$RUNNER_TEMP/gemini-request.json"
             HTTP_CODE="$(curl -sS -o "$RUNNER_TEMP/gemini-response.json" -w '%{http_code}' \
               -H 'Content-Type: application/json' \
-              -X POST "https://generativelanguage.googleapis.com/v1beta/models/$MODEL:generateContent?key=$GEMINI_API_KEY" \
+              -X POST "https://generativelanguage.googleapis.com/v1beta/models/$MODEL:generateContent?key=$GOOGLE_API_KEY" \
               --data-binary @"$RUNNER_TEMP/gemini-request.json")"
             if [[ "$HTTP_CODE" != 2* ]]; then
-              echo "::error::Gemini API request failed with HTTP $HTTP_CODE. Check GEMINI_API_KEY and GEMINI_MODEL."
+              echo "::error::Gemini API request failed with HTTP $HTTP_CODE. Check GOOGLE_API_KEY and GEMINI_MODEL."
               cat "$RUNNER_TEMP/gemini-response.json"
               exit 1
             fi
