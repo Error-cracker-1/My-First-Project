@@ -61,7 +61,7 @@ def _sync_active_session(session):
 
 @app.get("/")
 def index():
-    return render_template("index.html", version="2.1")
+    return render_template("index.html", version="2.2")
 
 
 @app.get("/api/status")
@@ -71,7 +71,7 @@ def status():
         return response(
             {
                 "ok": True,
-                "version": "2.1",
+                "version": "2.2",
                 "model": session["model"],
                 "model_name": model_display_name(session["model"]),
                 "history": len(session["history"]),
@@ -108,9 +108,9 @@ def chat():
 
     if not isinstance(message, str) or not message.strip():
         return response({"ok": False, "error": "Message cannot be empty."}, sid, 400)
-    if len(message) > 20000:
+    if len(message) > 120000:
         return response(
-            {"ok": False, "error": "Message is limited to 20,000 characters."},
+            {"ok": False, "error": "Message and attached text files are limited to 120,000 characters combined."},
             sid,
             400,
         )
