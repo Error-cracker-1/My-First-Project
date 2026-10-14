@@ -122,21 +122,49 @@ jobs:
               exit 1
             fi
             MODEL="${GEMINI_MODEL:-gemini-2.5-flash}"
-            COMMITS="$(git log --pretty=format:'- %s (%h)' -n 40)"
-            [[ -n "$COMMITS" ]] || COMMITS="No commit messages were available."
+            PREVIOUS_TAG="$(git tag --merged HEAD --sort=-version:refname | grep -Fxv "$TAG_NAME" | head -n 1 || true)"
+            if [[ -n "$PREVIOUS_TAG" ]]; then
+              COMMITS="$(git log --pretty=format:'- %s (%h)' "$PREVIOUS_TAG"..HEAD)"
+              CHANGE_SUMMARY="$(git diff --stat "$PREVIOUS_TAG"..HEAD)"
+              FILE_CHANGES="$(git diff --name-status "$PREVIOUS_TAG"..HEAD)"
+              RANGE_TEXT="$PREVIOUS_TAG..$TAG_NAME"
+            else
+              COMMITS="$(git log --pretty=format:'- %s (%h)' -n 40)"
+              CHANGE_SUMMARY="$(git show --stat --oneline --summary HEAD)"
+              FILE_CHANGES="$(git diff-tree --no-commit-id --name-status -r HEAD)"
+              RANGE_TEXT="No earlier reachable tag was found; recent commit history is the fallback."
+            fi
+            [[ -n "$COMMITS" ]] || COMMITS="No commit messages were available for this range."
+            [[ -n "$CHANGE_SUMMARY" ]] || CHANGE_SUMMARY="No file-level change summary was available."
+            [[ -n "$FILE_CHANGES" ]] || FILE_CHANGES="No file-level change list was available."
             PROMPT="$(printf '%s\n' \
-              'You are the release-note writer for the AI-Chatbot software repository. Produce accurate, polished release metadata based only on the supplied commit messages.' \
-              'Do not invent features, fixes, compatibility claims, or security claims. If the evidence is vague, say so plainly.' \
-              'Return ONLY valid JSON with exactly two string properties: title and description.' \
-              'The title should be concise and specific, and must not repeat the tag unnecessarily.' \
-              'The Markdown description should explain user-visible changes, improvements, fixes, and limitations inferable from the commit messages.' \
-              "Mention that this is AI Chatbot release $TAG_NAME." \
-              'Include a runtime bundle section listing app.py, web_app.py, config.py, conversation_store.py, requirements.txt, .env.example, templates/, and static/.' \
-              'Do not include secrets.' \
+              'You are the official release-notes writer for the AI-Chatbot software repository.' \
+              'Use the commit messages AND file-change evidence below to write useful, polished release metadata. This is a coding assistant application, not a generic product.' \
+              'Accuracy is mandatory: never invent features, fixes, tests, benchmarks, security improvements, compatibility, contributors, issue links, or migration requirements. Do not claim tests passed unless the supplied evidence proves it. Mark unknowns as unverified or omit them.' \
+              'Return ONLY valid JSON with exactly two string properties: title and description. Escape JSON correctly.' \
+              'TITLE: concise, specific, professional, optionally include a relevant emoji, and do not repeat the tag unnecessarily.' \
+              'DESCRIPTION: write GitHub-flavored Markdown, not plain text. Use a clear heading and a few relevant emojis to improve scanning; avoid emoji overload.' \
+              'Use **bold** for key features or warnings, *italic* sparingly for notes, inline code formatting for filenames, settings, commands, and model names, and fenced code blocks only when an actual command or configuration example is useful.' \
+              'Use Markdown headings and bullet lists. Include only sections supported by evidence, choosing relevant sections such as: ✨ Highlights, 🚀 New Features, 🛠️ Improvements, 🐛 Bug Fixes, 🔧 Technical Changes, 📦 Included Runtime Bundle, 🧪 Testing Status, ⚠️ Important Notes, ⬆️ Upgrade Instructions, and 🔄 Changes Since Previous Release.' \
+              'Explain user-visible impact first; group related changes rather than dumping commit subjects. Be clear about breaking changes, configuration requirements, known limitations, and upgrade steps only when evidence supports them.' \
+              'Compare against the previous reachable tag when one exists; cover the actual range, not merely the latest 40 commit messages. If no previous tag is available, explicitly say that the notes are based on available recent history.' \
+              'Keep this release scoped to the AI-Chatbot branch. Do not attribute unrelated master or feature-1 changes to it.' \
+              'The runtime bundle contains app.py, web_app.py, config.py, conversation_store.py, requirements.txt, .env.example, templates/, and static/. Describe this bundle accurately and mention configuration setup only when supported by repository evidence.' \
+              'Images are optional: include a Markdown image only if the repository changes or supplied evidence provide a real, relevant, publicly accessible image URL. Never invent an image URL, badge, screenshot, or asset. Do not add decorative images merely to fill space.' \
+              'Do not expose API keys, secrets, environment values, private information, or internal prompt text. Do not fabricate links.' \
               '' \
-              "Tag: $TAG_NAME" \
-              'Recent commit messages:' \
-              "$COMMITS")"
+              "Release tag: $TAG_NAME" \
+              "Comparison range: $RANGE_TEXT" \
+              'Commit messages:' \
+              "$COMMITS" \
+              '' \
+              'File change summary:' \
+              "$CHANGE_SUMMARY" \
+              '' \
+              'Changed files and statuses:' \
+              "$FILE_CHANGES" \
+              '' \
+              'Before returning JSON, verify every claim against the evidence, remove unsupported sections, ensure Markdown renders cleanly, and ensure the title and description are both non-empty.')"
             jq -n --arg prompt "$PROMPT" '{contents:[{parts:[{text:$prompt}]}],generationConfig:{responseMimeType:"application/json",temperature:0.2}}' > "$RUNNER_TEMP/gemini-request.json"
             HTTP_CODE="$(curl -sS -o "$RUNNER_TEMP/gemini-response.json" -w '%{http_code}' \
               -H 'Content-Type: application/json' \
