@@ -61,7 +61,7 @@ def _sync_active_session(session):
 
 @app.get("/")
 def index():
-    return render_template("index.html", version="2.2")
+    return render_template("index.html", version="2.3")
 
 
 @app.get("/api/status")
@@ -71,7 +71,7 @@ def status():
         return response(
             {
                 "ok": True,
-                "version": "2.2",
+                "version": "2.3",
                 "model": session["model"],
                 "model_name": model_display_name(session["model"]),
                 "history": len(session["history"]),
@@ -115,11 +115,23 @@ def chat():
             400,
         )
 
-    answer, error = ask_ai(message.strip(), session["chat"])
+    mode = str(data.get("mode", "chat")).strip().lower()
+    mode_instructions = {
+        "chat": "",
+        "debug": "You are in DEBUGGING mode. Diagnose likely root causes, explain errors, and propose a minimal fix. State assumptions; never claim code was executed unless it was.",
+        "explain": "You are in CODE EXPLANATION mode. Explain the code purpose, important functions, data flow, and edge cases clearly.",
+        "generate": "You are in CODE GENERATION mode. Implement the user's requirements with maintainable code, state assumptions, and include concise usage notes when useful.",
+    }
+    if mode not in mode_instructions:
+        return response({"ok": False, "error": "Unsupported mode. Choose chat, debug, explain, or generate."}, sid, 400)
+    prompt = message.strip()
+    if mode_instructions[mode]:
+        prompt = mode_instructions[mode] + "\\n\\nUser request:\\n" + prompt
+    answer, error = ask_ai(prompt, session["chat"])
     if error:
         return response({"ok": False, "error": error}, sid, 502)
 
-    session["history"].append((message.strip(), answer))
+    session["history"].append(("[" + mode.title() + " mode] " + message.strip(), answer))
     return response(
         {"ok": True, "message": answer, "history": session["history"]},
         sid,
