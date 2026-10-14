@@ -126,7 +126,7 @@ def chat():
         return response({"ok": False, "error": "Unsupported mode. Choose chat, debug, explain, or generate."}, sid, 400)
     prompt = message.strip()
     if mode_instructions[mode]:
-        prompt = mode_instructions[mode] + "\\n\\nUser request:\\n" + prompt
+        prompt = mode_instructions[mode] + "\n\nUser request:\n" + prompt
     answer, error = ask_ai(prompt, session["chat"])
     if error:
         return response({"ok": False, "error": error}, sid, 502)
