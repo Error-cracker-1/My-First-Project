@@ -25,9 +25,9 @@
 - Load saved conversations and restore their Gemini chat context
 - List saved conversations with `/saves`
 - Saved conversation data is excluded from Git
-- Responsive Flask web interface with chat bubbles, syntax-highlighted code, and confirmed new-chat/load controls (v2.1)
+- Responsive Flask web interface with chat bubbles, syntax-highlighted code, and confirmed new-chat/load controls (v2.1)\n- Coding assistant modes: Normal Chat, Debugging, Explain Code, and Generate Code (v2.3)
 
-## Current Default Model
+## Coding Assistant Modes (v2.3)\n\n- **Normal Chat:** general-purpose conversation.\n- **Debugging:** diagnose errors, explain likely causes, and propose fixes.\n- **Explain Code:** explain purpose, functions, data flow, and edge cases.\n- **Generate Code:** implement requirements with maintainable code and useful usage notes.\n\nThe selected mode applies to each message without resetting the conversation. The assistant must not claim code was executed unless it actually was.\n\n## Current Default Model
 
 The default model is:
 
