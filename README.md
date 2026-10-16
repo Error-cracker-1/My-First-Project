@@ -27,9 +27,9 @@
 - Saved conversation data is excluded from Git
 - Dedicated code analysis mode with structured findings, severity, evidence, confidence, and suggested fixes (v2.4)
 - Responsive Flask web interface with chat bubbles, syntax-highlighted code, and confirmed new-chat/load controls (v2.1)
-- Coding assistant modes: Normal Chat, Debugging, Explain Code, and Generate Code (v2.4)
+- Coding assistant modes: Normal Chat, Debugging, Explain Code, and Generate Code (v2.3)
 
-## Coding Assistant Modes (v2.4)
+## Coding Assistant Modes (v2.3)
 
 - **Normal Chat:** general-purpose conversation.
 - **Debugging:** diagnose errors, explain likely causes, and propose fixes.
