@@ -28,6 +28,8 @@ class CodeAnalysisInputError(ValueError):
 def detect_analysis_language(filename: str, language: str | None = None) -> str:
     """Resolve a language label from an explicit value or filename extension."""
     if language is not None:
+        if not isinstance(language, str):
+            raise CodeAnalysisInputError("Language must be a text label.")
         selected = language.strip()
         if not selected:
             raise CodeAnalysisInputError("Language cannot be blank.")
