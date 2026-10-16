@@ -26,9 +26,19 @@
 - List saved conversations with `/saves`
 - Saved conversation data is excluded from Git
 - Dedicated code analysis mode with structured findings, severity, evidence, confidence, and suggested fixes (v2.4)
-- Responsive Flask web interface with chat bubbles, syntax-highlighted code, and confirmed new-chat/load controls (v2.1)\n- Coding assistant modes: Normal Chat, Debugging, Explain Code, and Generate Code (v2.4)
+- Responsive Flask web interface with chat bubbles, syntax-highlighted code, and confirmed new-chat/load controls (v2.1)
+- Coding assistant modes: Normal Chat, Debugging, Explain Code, and Generate Code (v2.4)
 
-## Coding Assistant Modes (v2.4)\n\n- **Normal Chat:** general-purpose conversation.\n- **Debugging:** diagnose errors, explain likely causes, and propose fixes.\n- **Explain Code:** explain purpose, functions, data flow, and edge cases.\n- **Generate Code:** implement requirements with maintainable code and useful usage notes.\n\nThe selected mode applies to each message without resetting the conversation. The assistant must not claim code was executed unless it actually was.\n\n## Code Analysis (v2.4)
+## Coding Assistant Modes (v2.4)
+
+- **Normal Chat:** general-purpose conversation.
+- **Debugging:** diagnose errors, explain likely causes, and propose fixes.
+- **Explain Code:** explain purpose, functions, data flow, and edge cases.
+- **Generate Code:** implement requirements with maintainable code and useful usage notes.
+
+The selected mode applies to each message without resetting the conversation. The assistant must not claim code was executed unless it actually was.
+
+## Code Analysis (v2.4)
 
 Use **Code Analysis** in the web interface to review pasted source or attach a text/code file. The analyzer returns a structured Markdown report covering likely issues, severity, evidence, confidence, edge cases, maintainability, and suggested fixes. It does not execute code and should state uncertainty when project context is missing.
 
