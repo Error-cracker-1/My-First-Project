@@ -84,6 +84,12 @@ jobs:
             -f sha="$TAG_OBJECT"
           echo "Created tag $TAG_NAME at AI-Chatbot commit $SOURCE_SHA"
 
+      - name: Test code-analysis input handling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_code_analysis
+
       - name: Build runtime bundle
         env:
           TAG_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
