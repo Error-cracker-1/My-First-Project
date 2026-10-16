@@ -95,7 +95,7 @@ jobs:
           ZIP="$BUNDLE_DIR/AI-Chatbot-$TAG_NAME-bundle.zip"
           rm -rf "$BUNDLE_DIR"
           mkdir -p "$ROOT"
-          cp app.py web_app.py config.py conversation_store.py requirements.txt .env.example "$ROOT"/
+          cp app.py web_app.py config.py conversation_store.py code_analysis.py requirements.txt .env.example "$ROOT"/
           cp -R templates static "$ROOT"/
           (cd "$BUNDLE_DIR" && zip -qr "$(basename "$ZIP")" "$(basename "$ROOT")")
           test -f "$ZIP"
