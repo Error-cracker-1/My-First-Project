@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101827">
   <meta name="description" content="A browser-based AI coding chatbot powered by Gemini.">
-  <title>AI Coding Chatbot v2.3</title>
+  <title>AI Coding Chatbot v2.4</title>
   <link rel="stylesheet" href="/static/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
@@ -16,10 +16,10 @@
     <header class="topbar">
       <a class="brand" href="/" aria-label="AI Coding Chatbot home">
         <span class="brand-mark" aria-hidden="true">AI</span>
-        <span><strong>AI Coding Chatbot</strong><small>Web workspace · v2.3</small></span>
+        <span><strong>AI Coding Chatbot</strong><small>Web workspace · v2.4</small></span>
       </a>
       <div class="top-actions">
-        <label class="model-picker"><span>Mode</span><select id="mode" aria-label="Coding assistant mode"><option value="chat">Normal Chat</option><option value="debug">Debugging</option><option value="explain">Explain Code</option><option value="generate">Generate Code</option></select></label>
+        <label class="model-picker"><span>Mode</span><select id="mode" aria-label="Coding assistant mode"><option value="chat">Normal Chat</option><option value="debug">Debugging</option><option value="explain">Explain Code</option><option value="generate">Generate Code</option><option value="analysis">Code Analysis</option></select></label>
         <label class="model-picker"><span>Model</span><select id="model" aria-label="Gemini model"></select></label>
         <button id="clear" class="button button-secondary" type="button">＋ New chat</button>
       </div>
@@ -27,7 +27,7 @@
 
     <section class="workspace" aria-label="Chat workspace">
       <div class="conversation-heading">
-        <div><p class="eyebrow">YOUR WORKSPACE</p><h1>Let's build something.</h1><p class="subheading">Choose Chat, Debugging, Explain Code, or Generate Code for focused help.</p></div>
+        <div><p class="eyebrow">YOUR WORKSPACE</p><h1>Let's build something.</h1><p class="subheading">Choose Chat, Debugging, Explain Code, Generate Code, or Code Analysis for focused help.</p></div>
         <span class="online-status"><i></i> Ready when you are</span>
       </div>
       <section id="chat" class="chat" aria-label="Conversation" aria-live="polite">
