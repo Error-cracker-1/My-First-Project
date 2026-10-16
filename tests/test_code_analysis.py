@@ -27,6 +27,10 @@ class CodeAnalysisTests(unittest.TestCase):
         with self.assertRaises(CodeAnalysisInputError):
             build_analysis_prompt("some code", "snippet.src", "made-up-language")
 
+    def test_rejects_non_text_language(self):
+        with self.assertRaises(CodeAnalysisInputError):
+            build_analysis_prompt("some code", "snippet.src", ["Python"])
+
     def test_rejects_empty_source(self):
         with self.assertRaises(CodeAnalysisInputError):
             build_analysis_prompt("  ")
@@ -44,7 +48,7 @@ class CodeAnalysisTests(unittest.TestCase):
         prompt = build_analysis_prompt(source, "math.py")
         self.assertIn(source, prompt)
         self.assertIn("line number", prompt.lower())
-        self.assertIn("Confidence", prompt)
+        self.assertIn("confidence", prompt.lower())
         self.assertIn("Language: Python", prompt)
 
     def test_requires_filename(self):
