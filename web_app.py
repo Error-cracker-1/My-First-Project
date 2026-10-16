@@ -9,6 +9,8 @@ from app import (
 )
 from config import ChatbotConfig
 from conversation_store import ConversationStore, ConversationStoreError
+from code_analysis import CodeAnalysisInputError, build_analysis_prompt
+from pathlib import Path
 import secrets
 
 
@@ -61,7 +63,7 @@ def _sync_active_session(session):
 
 @app.get("/")
 def index():
-    return render_template("index.html", version="2.3")
+    return render_template("index.html", version="2.4")
 
 
 @app.get("/api/status")
@@ -71,7 +73,7 @@ def status():
         return response(
             {
                 "ok": True,
-                "version": "2.3",
+                "version": "2.4",
                 "model": session["model"],
                 "model_name": model_display_name(session["model"]),
                 "history": len(session["history"]),
@@ -136,6 +138,31 @@ def chat():
         {"ok": True, "message": answer, "history": session["history"]},
         sid,
     )
+
+
+@app.post("/api/analyze")
+def analyze():
+    """Analyze supplied source and return structured, evidence-based findings."""
+    try:
+        sid, session = get_session()
+    except Exception as error:
+        return jsonify({"ok": False, "error": classify_error(error)}), 502
+
+    data = request.get_json(silent=True) or {}
+    source = data.get("source", "")
+    filename = data.get("filename", "pasted-code")
+    language = data.get("language")
+    try:
+        prompt = build_analysis_prompt(source, filename=filename, language=language)
+    except CodeAnalysisInputError as error:
+        return response({"ok": False, "error": str(error)}, sid, 400)
+
+    answer, error = ask_ai(prompt, session["chat"])
+    if error:
+        return response({"ok": False, "error": error}, sid, 502)
+
+    session["history"].append(("[Code analysis] " + Path(str(filename)).name, answer))
+    return response({"ok": True, "message": answer, "history": session["history"]}, sid)
 
 
 @app.post("/api/model")
