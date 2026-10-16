@@ -25,9 +25,18 @@
 - Load saved conversations and restore their Gemini chat context
 - List saved conversations with `/saves`
 - Saved conversation data is excluded from Git
-- Responsive Flask web interface with chat bubbles, syntax-highlighted code, and confirmed new-chat/load controls (v2.1)\n- Coding assistant modes: Normal Chat, Debugging, Explain Code, and Generate Code (v2.3)
+- Dedicated code analysis mode with structured findings, severity, evidence, confidence, and suggested fixes (v2.4)
+- Responsive Flask web interface with chat bubbles, syntax-highlighted code, and confirmed new-chat/load controls (v2.1)\n- Coding assistant modes: Normal Chat, Debugging, Explain Code, and Generate Code (v2.4)
 
-## Coding Assistant Modes (v2.3)\n\n- **Normal Chat:** general-purpose conversation.\n- **Debugging:** diagnose errors, explain likely causes, and propose fixes.\n- **Explain Code:** explain purpose, functions, data flow, and edge cases.\n- **Generate Code:** implement requirements with maintainable code and useful usage notes.\n\nThe selected mode applies to each message without resetting the conversation. The assistant must not claim code was executed unless it actually was.\n\n## Current Default Model
+## Coding Assistant Modes (v2.4)\n\n- **Normal Chat:** general-purpose conversation.\n- **Debugging:** diagnose errors, explain likely causes, and propose fixes.\n- **Explain Code:** explain purpose, functions, data flow, and edge cases.\n- **Generate Code:** implement requirements with maintainable code and useful usage notes.\n\nThe selected mode applies to each message without resetting the conversation. The assistant must not claim code was executed unless it actually was.\n\n## Code Analysis (v2.4)
+
+Use **Code Analysis** in the web interface to review pasted source or attach a text/code file. The analyzer returns a structured Markdown report covering likely issues, severity, evidence, confidence, edge cases, maintainability, and suggested fixes. It does not execute code and should state uncertainty when project context is missing.
+
+In the terminal interface, run `python app.py` and enter `/analyze path/to/file.py` (or `/analyze` and enter the path when prompted). Analysis input is limited to 120,000 characters. Supported source extensions are checked before analysis.
+
+The analysis is AI-assisted static review, not a substitute for running tests, linters, security scanners, or reviewing the full project context.
+
+## Current Default Model
 
 The default model is:
 
@@ -140,7 +149,7 @@ Each saved conversation includes its model ID, ordered user/assistant message pa
 
 Missing, corrupted, unsupported, or invalid saves are handled without terminating the chatbot.
 
-Run `python -m unittest -v test_conversation_store.py` to test persistence behavior.
+Run `python -m unittest -v test_conversation_store.py` to test persistence behavior, and `python -m unittest -v tests.test_code_analysis` to test code-analysis input handling.
 
 ## Quota and Rate-Limit Handling
 
@@ -154,10 +163,11 @@ Reducing `GEMINI_MAX_OUTPUT_TOKENS` can limit the maximum amount of generated ou
 
 | File | Description |
 |---|---|
-| `app.py` | Main command-line chatbot |
+| `app.py` | Main command-line chatbot, including `/analyze` |
 | `web_app.py` | Flask web interface |
 | `config.py` | Configuration management and environment validation |
 | `conversation_store.py` | Conversation persistence layer |
+| `code_analysis.py` | Code-analysis input validation, language detection, and structured prompt builder |
 | `requirements.txt` | Python dependencies |
 | `.env.example` | Environment-variable template |
 | `.gitignore` | Prevents local environment files and Python cache files from being committed |
