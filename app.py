@@ -6,6 +6,7 @@ from google.genai import types
 
 from config import ChatbotConfig
 from conversation_store import ConversationStore, ConversationStoreError
+from code_analysis import CodeAnalysisInputError, build_analysis_prompt
 
 
 load_dotenv()
@@ -258,6 +259,20 @@ def send_file_to_ai(file_path: str, chat):
     )
     return ask_ai(prompt, chat)
 
+def analyze_file_with_ai(file_path: str, chat):
+    """Analyze a supported local source file without executing it."""
+    file_context, error = read_code_file(file_path)
+    if error:
+        return None, error
+    path = Path(file_path.strip().strip('\"')).expanduser()
+    try:
+        source = path.read_text(encoding="utf-8")
+        prompt = build_analysis_prompt(source, filename=path.name)
+    except (OSError, CodeAnalysisInputError) as error:
+        return None, str(error)
+    return ask_ai(prompt, chat)
+
+
 def print_history(history, model: str) -> None:
     if not history:
         print(f"Bot: No conversation history for {model_display_name(model)} yet.\n")
@@ -329,7 +344,7 @@ def main() -> None:
     }
 
     print("================================")
-    print("        AI Coding Chatbot v2.0")
+    print("        AI Coding Chatbot v2.4")
     print("================================")
     print("Powered by Gemini")
     print(f"Model: {model_display_name(current_model)}")
@@ -341,7 +356,7 @@ def main() -> None:
     print("File/code input is enabled (512 KB UTF-8 text/source limit).")
     print("Web interface: run `python web_app.py` and open http://127.0.0.1:5000")
     print("Conversation save/load is enabled.")
-    print("Commands: /model, /models, /file, /current, /history, /clear, /save, /load, /saves, /exit")
+    print("Commands: /model, /models, /file, /analyze, /current, /history, /clear, /save, /load, /saves, /exit")
     print("Saved conversations are stored locally and are not committed to Git.")
     print("Conversation sessions are preserved separately for each model.")
     print("Supports many programming languages, not just Python.\n")
@@ -436,6 +451,21 @@ def main() -> None:
                     print("=========================================\\n")
             except ConversationStoreError as error:
                 print(f"Bot: Could not list saved conversations. {error}\\n")
+            continue
+
+        if command == "/analyze" or command.startswith("/analyze "):
+            file_path = user_message.partition(" ")[2].strip()
+            if not file_path:
+                file_path = input("Source file path to analyze: ").strip()
+            if not file_path:
+                print("Bot: A source file path is required.\\n")
+                continue
+            bot_message, error_message = analyze_file_with_ai(file_path, chat)
+            if error_message:
+                print(f"Bot: Code analysis could not be completed. {error_message}\\n")
+                continue
+            history.append((f"[Code analysis] {file_path}", bot_message))
+            print(f"Bot: {bot_message}\\n")
             continue
 
         if command == "/file":
